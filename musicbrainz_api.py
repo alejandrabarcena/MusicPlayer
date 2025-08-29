@@ -181,11 +181,93 @@ class MusicBrainzAPI:
     def search_classical_by_period(self, period: str) -> List[Dict]:
         """Search for classical music by historical period"""
         period_queries = {
-            'baroque': 'Bach OR Vivaldi OR Handel OR Telemann OR Purcell',
-            'classical': 'Mozart OR Haydn OR Clementi OR Boccherini',
-            'romantic': 'Beethoven OR Chopin OR Schubert OR Schumann OR Brahms OR Liszt',
-            'modern': 'Stravinsky OR Debussy OR Ravel OR Bartók OR Prokofiev'
+            'baroque': 'Bach OR Vivaldi OR Handel OR Telemann OR Purcell OR Scarlatti OR Corelli OR Rameau OR Couperin OR Pachelbel',
+            'classical': 'Mozart OR Haydn OR Clementi OR Boccherini OR Salieri OR Dittersdorf',
+            'romantic': 'Beethoven OR Chopin OR Schubert OR Schumann OR Brahms OR Liszt OR Wagner OR Mendelssohn OR Berlioz',
+            'modern': 'Stravinsky OR Debussy OR Ravel OR Bartók OR Prokofiev OR Schoenberg OR Berg OR Webern'
         }
         
         query = period_queries.get(period.lower(), period)
-        return self.search_artist(query, limit=10)
+        return self.search_artist(query, limit=15)
+    
+    def get_baroque_composers(self) -> List[Dict]:
+        """Get detailed information about major Baroque composers"""
+        baroque_masters = [
+            "Johann Sebastian Bach",
+            "Antonio Vivaldi", 
+            "George Frideric Handel",
+            "Georg Philipp Telemann",
+            "Jean-Philippe Rameau",
+            "Domenico Scarlatti",
+            "Arcangelo Corelli",
+            "Henry Purcell",
+            "Johann Pachelbel",
+            "François Couperin"
+        ]
+        
+        all_composers = []
+        for composer in baroque_masters[:6]:  # Limit to avoid too many API calls
+            results = self.search_artist(composer, limit=1)
+            if results:
+                # Add baroque-specific information
+                composer_info = results[0]
+                composer_info['period'] = 'Barroco'
+                composer_info['baroque_info'] = self._get_baroque_composer_info(composer)
+                all_composers.extend([composer_info])
+            
+        return all_composers
+    
+    def _get_baroque_composer_info(self, composer_name: str) -> Dict:
+        """Get specific information about baroque composers"""
+        baroque_info = {
+            "Johann Sebastian Bach": {
+                "speciality": "Fugas, cantatas, música sacra",
+                "instruments": "Órgano, clavecín",
+                "famous_works": ["El Clave Bien Temperado", "Misa en Si menor", "Conciertos de Brandenburgo"],
+                "region": "Alemania",
+                "contribution": "Maestro del contrapunto y la armonía barroca"
+            },
+            "Antonio Vivaldi": {
+                "speciality": "Conciertos para violín, música instrumental",
+                "instruments": "Violín, orquesta",
+                "famous_works": ["Las Cuatro Estaciones", "Gloria", "Conciertos para violín"],
+                "region": "Italia (Venecia)",
+                "contribution": "Virtuoso del concierto barroco y la música programática"
+            },
+            "George Frideric Handel": {
+                "speciality": "Oratorios, óperas, música ceremonial",
+                "instruments": "Órgano, orquesta",
+                "famous_works": ["El Mesías", "Música Acuática", "Música para los Reales Fuegos Artificiales"],
+                "region": "Alemania-Inglaterra",
+                "contribution": "Maestro del oratorio y la música ceremonial inglesa"
+            },
+            "Georg Philipp Telemann": {
+                "speciality": "Música de cámara, conciertos",
+                "instruments": "Flauta, oboe, cuerdas",
+                "famous_works": ["Conciertos para flauta", "Música de mesa", "Fantasías"],
+                "region": "Alemania",
+                "contribution": "Compositor más prolífico del Barroco alemán"
+            },
+            "Jean-Philippe Rameau": {
+                "speciality": "Música para clavecín, óperas",
+                "instruments": "Clavecín",
+                "famous_works": ["Piezas de clavecín", "Castor et Pollux", "Les Indes galantes"],
+                "region": "Francia",
+                "contribution": "Teórico de la armonía y maestro del clavecín francés"
+            },
+            "Domenico Scarlatti": {
+                "speciality": "Sonatas para clavecín",
+                "instruments": "Clavecín",
+                "famous_works": ["555 Sonatas para clavecín", "Stabat Mater"],
+                "region": "Italia-España",
+                "contribution": "Innovador de la sonata para teclado"
+            }
+        }
+        
+        return baroque_info.get(composer_name, {
+            "speciality": "Música barroca",
+            "instruments": "Varios",
+            "famous_works": ["Obras del período barroco"],
+            "region": "Europa",
+            "contribution": "Compositor del período barroco"
+        })

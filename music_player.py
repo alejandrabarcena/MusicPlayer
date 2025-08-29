@@ -182,8 +182,16 @@ class MusicPlayer:
         
         periods = [("Barroco", "baroque"), ("Clásico", "classical"), ("Romántico", "romantic"), ("Moderno", "modern")]
         for text, period in periods:
-            tk.Button(periods_frame, text=text, command=lambda p=period: self.search_by_period(p), 
-                     **period_style).pack(side=tk.LEFT, padx=2)
+            if period == "baroque":
+                # Special styling for Baroque period
+                baroque_style = period_style.copy()
+                baroque_style['bg'] = '#8B4513'
+                baroque_style['font'] = ('Arial', 8, 'bold')
+                tk.Button(periods_frame, text=f"🎭 {text}", command=lambda p=period: self.search_baroque_detailed(), 
+                         **baroque_style).pack(side=tk.LEFT, padx=2)
+            else:
+                tk.Button(periods_frame, text=text, command=lambda p=period: self.search_by_period(p), 
+                         **period_style).pack(side=tk.LEFT, padx=2)
         
         # Search results frame
         self.search_results_frame = tk.Frame(search_frame, bg='#8e44ad')
@@ -616,12 +624,34 @@ class MusicPlayer:
         if composer['country']:
             main_text += f" ({composer['country']})"
         
-        tk.Label(parent, text=main_text, bg='#7d3c98', fg='white', 
+        # Special styling for baroque composers
+        if composer.get('period') == 'Barroco':
+            parent.config(bg='#8B4513')
+            main_text = f"🎭 {main_text}"
+        
+        tk.Label(parent, text=main_text, bg=parent.cget('bg'), fg='white', 
                 font=('Arial', 9, 'bold'), anchor='w').pack(fill=tk.X, padx=5, pady=2)
         
-        if composer['sort_name'] != composer['name']:
+        # Show baroque-specific information
+        if 'baroque_info' in composer:
+            baroque_info = composer['baroque_info']
+            info_text = f"⚡ {baroque_info['speciality']} | 🎹 {baroque_info['instruments']}"
+            tk.Label(parent, text=info_text, bg=parent.cget('bg'), fg='#FFD700', 
+                    font=('Arial', 8), anchor='w').pack(fill=tk.X, padx=5)
+            
+            works_text = f"🎼 Obras: {', '.join(baroque_info['famous_works'][:2])}"
+            if len(baroque_info['famous_works']) > 2:
+                works_text += "..."
+            tk.Label(parent, text=works_text, bg=parent.cget('bg'), fg='#F0E68C', 
+                    font=('Arial', 7), anchor='w').pack(fill=tk.X, padx=5)
+                    
+            contribution_text = f"💡 {baroque_info['contribution']}"
+            tk.Label(parent, text=contribution_text, bg=parent.cget('bg'), fg='#DDD', 
+                    font=('Arial', 7, 'italic'), anchor='w').pack(fill=tk.X, padx=5)
+        
+        elif composer['sort_name'] != composer['name']:
             tk.Label(parent, text=f"También conocido como: {composer['sort_name']}", 
-                    bg='#7d3c98', fg='#d2b4de', font=('Arial', 8), anchor='w').pack(fill=tk.X, padx=5)
+                    bg=parent.cget('bg'), fg='#d2b4de', font=('Arial', 8), anchor='w').pack(fill=tk.X, padx=5)
     
     def _create_work_result(self, parent, work):
         """Create display for work search result"""
@@ -688,6 +718,36 @@ class MusicPlayer:
             
         except Exception as e:
             error_msg = f"Error en la búsqueda por período: {str(e)}"
+            self.root.after(0, self._display_error, error_msg)
+    
+    def search_baroque_detailed(self):
+        """Special detailed search for Baroque period composers"""
+        # Clear search entry and set it to baroque
+        self.search_var.set("")
+        self.search_type.set("composer")
+        
+        # Clear previous results
+        for widget in self.search_results_frame.winfo_children():
+            widget.destroy()
+        
+        # Show loading message with baroque styling
+        loading_label = tk.Label(self.search_results_frame, text="🎭 Cargando maestros del Barroco...", 
+                               bg='#8e44ad', fg='#FFD700', font=('Arial', 10, 'bold'))
+        loading_label.pack(pady=5)
+        
+        # Start baroque search in background thread
+        baroque_thread = threading.Thread(target=self._perform_baroque_search, daemon=True)
+        baroque_thread.start()
+    
+    def _perform_baroque_search(self):
+        """Perform detailed baroque search in background thread"""
+        try:
+            results = self.mb_api.get_baroque_composers()
+            # Update UI in main thread
+            self.root.after(0, self._display_search_results, results, "composer")
+            
+        except Exception as e:
+            error_msg = f"Error en la búsqueda del Barroco: {str(e)}"
             self.root.after(0, self._display_error, error_msg)
     
     def _display_error(self, error_msg):

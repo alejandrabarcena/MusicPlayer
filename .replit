@@ -5,7 +5,7 @@ integrations = ["javascript_object_storage==1.0.0"]
 
 [nix]
 channel = "stable-25_05"
-packages = ["SDL2", "SDL2_image", "SDL2_mixer", "SDL2_ttf", "alsa-lib", "fontconfig", "freetype", "libjpeg", "libpng", "pkg-config", "portmidi", "pulseaudio"]
+packages = ["SDL2", "SDL2_image", "SDL2_mixer", "SDL2_ttf", "alsa-lib", "fontconfig", "freetype", "lcms2", "libimagequant", "libjpeg", "libpng", "libtiff", "libwebp", "libxcrypt", "openjpeg", "pkg-config", "portmidi", "pulseaudio", "tcl", "tk", "zlib"]
 
 [workflows]
 runButton = "Project"

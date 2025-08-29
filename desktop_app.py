@@ -16,6 +16,7 @@ import calendar
 import webbrowser
 import subprocess
 from pathlib import Path
+from PIL import Image, ImageTk
 
 # Import music functionality
 from music_player import MusicPlayer
@@ -459,29 +460,40 @@ class CustomDesktop:
         self.setup_layout()
         
     def setup_layout(self):
-        # Logo section with custom typography to match the provided image
+        # Logo section using the real image
         logo_frame = tk.Frame(self.main_frame, bg='#f7f4f1')
         logo_frame.pack(fill='x', pady=(0, 30))
         
-        # "Welcome" in elegant cursive orange
-        welcome_label = tk.Label(logo_frame, text="Welcome", 
-                                font=('Brush Script MT', 52, 'italic'), 
-                                fg='#ff6b35', bg='#f7f4f1')
-        welcome_label.pack(side=tk.LEFT)
-        
-        # "CLASSICAL MUSIC" in bold dark gray, positioned below/right
-        classical_frame = tk.Frame(logo_frame, bg='#f7f4f1')
-        classical_frame.pack(side=tk.LEFT, padx=(10, 0))
-        
-        classical_label = tk.Label(classical_frame, text="CLASSICAL", 
+        try:
+            # Load and display the actual logo image
+            logo_image = Image.open('logo.png')
+            # Resize to fit nicely in the desktop (adjust size as needed)
+            logo_image = logo_image.resize((400, 200), Image.Resampling.LANCZOS)
+            self.logo_photo = ImageTk.PhotoImage(logo_image)
+            
+            logo_label = tk.Label(logo_frame, image=self.logo_photo, bg='#f7f4f1')
+            logo_label.pack(side=tk.LEFT)
+            
+        except Exception as e:
+            print(f"Could not load logo image: {e}")
+            # Fallback to text if image fails to load
+            welcome_label = tk.Label(logo_frame, text="Welcome", 
+                                    font=('Arial', 48, 'italic'), 
+                                    fg='#ff6b35', bg='#f7f4f1')
+            welcome_label.pack(side=tk.LEFT)
+            
+            classical_frame = tk.Frame(logo_frame, bg='#f7f4f1')
+            classical_frame.pack(side=tk.LEFT, padx=(10, 0))
+            
+            classical_label = tk.Label(classical_frame, text="CLASSICAL", 
+                                     font=('Arial', 38, 'bold'), 
+                                     fg='#4a4a4a', bg='#f7f4f1')
+            classical_label.pack(anchor='w')
+            
+            music_label = tk.Label(classical_frame, text="MUSIC", 
                                  font=('Arial', 38, 'bold'), 
                                  fg='#4a4a4a', bg='#f7f4f1')
-        classical_label.pack(anchor='w')
-        
-        music_label = tk.Label(classical_frame, text="MUSIC", 
-                             font=('Arial', 38, 'bold'), 
-                             fg='#4a4a4a', bg='#f7f4f1')
-        music_label.pack(anchor='w')
+            music_label.pack(anchor='w')
         
         # Main content area with proper spacing
         content_frame = tk.Frame(self.main_frame, bg='#f7f4f1')

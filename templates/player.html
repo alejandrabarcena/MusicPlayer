@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎵 Reproductor de Música - Welcome Classical Music</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo-img {
+            max-width: 200px;
+            height: auto;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            color: #4a4a4a;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .player-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .current-song {
+            margin-bottom: 20px;
+        }
+
+        .song-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .song-info {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .btn {
+            background: #ff6b35;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            min-width: 60px;
+        }
+
+        .btn:hover {
+            background: #e5522a;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-play {
+            background: #2d8a47;
+            padding: 15px 25px;
+            font-size: 16px;
+        }
+
+        .btn-play:hover {
+            background: #246a38;
+        }
+
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+            justify-content: center;
+        }
+
+        .volume-slider {
+            width: 150px;
+            height: 5px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #ff6b35;
+            cursor: pointer;
+        }
+
+        .progress-container {
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+
+        .progress-bar::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #2d8a47;
+            cursor: pointer;
+        }
+
+        .time-display {
+            display: flex;
+            justify-content: space-between;
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .playlist {
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .playlist h3 {
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .song-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .song-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .song-item.playing {
+            background: #e8f5e8;
+            border-left: 4px solid #2d8a47;
+        }
+
+        .song-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .song-duration {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .no-music {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 40px 20px;
+        }
+
+        .upload-link {
+            display: inline-block;
+            background: #ff6b35;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .upload-link:hover {
+            background: #e5522a;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="/static/logo.png" alt="Welcome Classical Music" class="logo-img">
+            <h1>🎵 Reproductor de Música</h1>
+            <p class="subtitle">Disfruta tu música clásica favorita</p>
+        </div>
+
+        <div class="player-section">
+            <div class="current-song">
+                <div class="song-title" id="currentTitle">Selecciona una canción</div>
+                <div class="song-info" id="currentInfo">Haz clic en una canción de la lista para reproducir</div>
+            </div>
+
+            <audio id="audioPlayer" preload="metadata"></audio>
+
+            <div class="controls">
+                <button class="btn" id="prevBtn">⏮️</button>
+                <button class="btn btn-play" id="playBtn">▶️</button>
+                <button class="btn" id="nextBtn">⏭️</button>
+            </div>
+
+            <div class="volume-container">
+                <span>🔈</span>
+                <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="70">
+                <span>🔊</span>
+            </div>
+
+            <div class="progress-container">
+                <input type="range" id="progressBar" class="progress-bar" min="0" max="100" value="0">
+                <div class="time-display">
+                    <span id="currentTime">0:00</span>
+                    <span id="totalTime">0:00</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="playlist">
+            <h3>📂 Tu Música</h3>
+            <div id="playlist">
+                {% if music_files %}
+                    {% for file in music_files %}
+                    <div class="song-item" data-src="/music/{{ file.name }}" data-name="{{ file.name }}">
+                        <span class="song-name">{{ file.name }}</span>
+                        <span class="song-duration">{{ file.size }} MB</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-music">
+                        <p>📁 No hay música disponible</p>
+                        <p>Sube tus archivos de música para empezar a reproducir</p>
+                        <a href="/" class="upload-link">📤 Subir Música</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Elementos del reproductor
+        const audioPlayer = document.getElementById('audioPlayer');
+        const playBtn = document.getElementById('playBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const progressBar = document.getElementById('progressBar');
+        const currentTime = document.getElementById('currentTime');
+        const totalTime = document.getElementById('totalTime');
+        const currentTitle = document.getElementById('currentTitle');
+        const currentInfo = document.getElementById('currentInfo');
+        const songItems = document.querySelectorAll('.song-item');
+
+        let currentSongIndex = -1;
+        let isPlaying = false;
+
+        // Configurar volumen inicial
+        audioPlayer.volume = 0.7;
+
+        // Event listeners
+        playBtn.addEventListener('click', togglePlay);
+        prevBtn.addEventListener('click', playPrevious);
+        nextBtn.addEventListener('click', playNext);
+        volumeSlider.addEventListener('input', setVolume);
+        progressBar.addEventListener('input', setProgress);
+
+        // Eventos del audio
+        audioPlayer.addEventListener('loadedmetadata', updateDuration);
+        audioPlayer.addEventListener('timeupdate', updateProgress);
+        audioPlayer.addEventListener('ended', playNext);
+
+        // Eventos de las canciones
+        songItems.forEach((item, index) => {
+            item.addEventListener('click', () => playSong(index));
+        });
+
+        function togglePlay() {
+            if (currentSongIndex === -1 && songItems.length > 0) {
+                playSong(0);
+                return;
+            }
+
+            if (isPlaying) {
+                audioPlayer.pause();
+                playBtn.textContent = '▶️';
+                isPlaying = false;
+            } else {
+                audioPlayer.play();
+                playBtn.textContent = '⏸️';
+                isPlaying = true;
+            }
+        }
+
+        function playSong(index) {
+            if (index < 0 || index >= songItems.length) return;
+
+            // Remover clase playing de todas las canciones
+            songItems.forEach(item => item.classList.remove('playing'));
+            
+            // Marcar canción actual
+            songItems[index].classList.add('playing');
+            currentSongIndex = index;
+
+            const songItem = songItems[index];
+            const src = songItem.getAttribute('data-src');
+            const name = songItem.getAttribute('data-name');
+
+            audioPlayer.src = src;
+            currentTitle.textContent = name;
+            currentInfo.textContent = 'Cargando...';
+
+            audioPlayer.load();
+            audioPlayer.play().then(() => {
+                playBtn.textContent = '⏸️';
+                isPlaying = true;
+                currentInfo.textContent = 'Reproduciendo';
+            }).catch(err => {
+                console.error('Error reproduciendo:', err);
+                currentInfo.textContent = 'Error al reproducir';
+            });
+        }
+
+        function playPrevious() {
+            if (currentSongIndex > 0) {
+                playSong(currentSongIndex - 1);
+            }
+        }
+
+        function playNext() {
+            if (currentSongIndex < songItems.length - 1) {
+                playSong(currentSongIndex + 1);
+            } else {
+                // Volver al inicio
+                playSong(0);
+            }
+        }
+
+        function setVolume() {
+            audioPlayer.volume = volumeSlider.value / 100;
+        }
+
+        function setProgress() {
+            const duration = audioPlayer.duration;
+            if (duration) {
+                audioPlayer.currentTime = (progressBar.value / 100) * duration;
+            }
+        }
+
+        function updateDuration() {
+            const duration = audioPlayer.duration;
+            if (duration) {
+                totalTime.textContent = formatTime(duration);
+            }
+        }
+
+        function updateProgress() {
+            const current = audioPlayer.currentTime;
+            const duration = audioPlayer.duration;
+            
+            if (duration) {
+                const progress = (current / duration) * 100;
+                progressBar.value = progress;
+                currentTime.textContent = formatTime(current);
+            }
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Teclas de control
+        document.addEventListener('keydown', (e) => {
+            switch(e.code) {
+                case 'Space':
+                    e.preventDefault();
+                    togglePlay();
+                    break;
+                case 'ArrowLeft':
+                    playPrevious();
+                    break;
+                case 'ArrowRight':
+                    playNext();
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>

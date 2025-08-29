@@ -387,12 +387,20 @@
             </div>
         </div>
 
-        <!-- Copy to player button -->
-        {% if uploaded_files %}
-        <button onclick="window.location.href='/copy-to-player'" class="copy-btn">
-            🎼 Copiar Música Subida al Reproductor
-        </button>
-        {% endif %}
+        <!-- Player and copy buttons -->
+        <div style="text-align: center; margin: 20px 0;">
+            {% if uploaded_files or sample_files %}
+            <button onclick="window.location.href='/player'" class="copy-btn" style="background: #2d8a47; margin-right: 10px;">
+                🎵 Abrir Reproductor de Música
+            </button>
+            {% endif %}
+            
+            {% if uploaded_files %}
+            <button onclick="window.location.href='/copy-to-player'" class="copy-btn">
+                🎼 Copiar Música Subida al Reproductor
+            </button>
+            {% endif %}
+        </div>
 
         <!-- Music sections -->
         <div class="music-sections">

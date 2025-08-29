@@ -236,6 +236,25 @@ def uploaded_cover(filename):
     """Serve uploaded album covers"""
     return send_from_directory(COVERS_FOLDER, filename)
 
+@app.route('/player')
+def music_player():
+    """Music player interface"""
+    music_files = []
+    
+    # Get all music files (uploaded + sample)
+    for folder in [UPLOAD_FOLDER, SAMPLE_FOLDER]:
+        if os.path.exists(folder):
+            for filename in os.listdir(folder):
+                if allowed_file(filename):
+                    filepath = os.path.join(folder, filename)
+                    music_files.append({
+                        'name': filename,
+                        'size': get_file_size_mb(filepath),
+                        'type': 'uploaded' if folder == UPLOAD_FOLDER else 'sample'
+                    })
+    
+    return render_template('player.html', music_files=music_files)
+
 @app.errorhandler(404)
 def not_found_error(error):
     """Custom 404 page with helpful navigation"""

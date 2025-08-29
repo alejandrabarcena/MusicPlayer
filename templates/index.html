@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎵 Subir Música - Reproductor de Música</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 2px dashed #007bff;
+            text-align: center;
+        }
+
+        .upload-section h2 {
+            color: #007bff;
+            margin-bottom: 15px;
+        }
+
+        .file-input-container {
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #007bff;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .file-input-label:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .upload-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .upload-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .upload-info {
+            color: #666;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .music-sections {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .music-section {
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .music-section h3 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #007bff;
+        }
+
+        .file-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            margin: 8px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+
+        .file-item.sample {
+            border-left-color: #6f42c1;
+        }
+
+        .file-info {
+            flex-grow: 1;
+        }
+
+        .file-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .file-size {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .copy-btn {
+            background: #ffc107;
+            color: #333;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 20px auto;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: #e0a800;
+            transform: translateY(-2px);
+        }
+
+        .alert {
+            padding: 12px 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .no-files {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .music-sections {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                margin: 10px;
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎵 Subir Música al Reproductor</h1>
+        
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'error' if category == 'error' else category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Upload section -->
+        <div class="upload-section">
+            <h2>📁 Subir Archivos de Música</h2>
+            <form method="POST" action="/upload" enctype="multipart/form-data">
+                <div class="file-input-container">
+                    <input type="file" id="files" name="files" class="file-input" multiple accept=".mp3,.wav,.ogg,.flac,.m4a">
+                    <label for="files" class="file-input-label">
+                        🎵 Seleccionar Archivos de Música
+                    </label>
+                </div>
+                <button type="submit" class="upload-btn">
+                    ⬆️ Subir Archivos
+                </button>
+            </form>
+            <div class="upload-info">
+                📝 Formatos soportados: MP3, WAV, OGG, FLAC, M4A<br>
+                📏 Tamaño máximo por archivo: 50MB
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-number">{{ total_uploaded }}</div>
+                <div class="stat-label">Archivos Subidos</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">{{ total_sample }}</div>
+                <div class="stat-label">Archivos de Ejemplo</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">{{ total_uploaded + total_sample }}</div>
+                <div class="stat-label">Total Disponible</div>
+            </div>
+        </div>
+
+        <!-- Copy to player button -->
+        {% if uploaded_files %}
+        <button onclick="window.location.href='/copy-to-player'" class="copy-btn">
+            🎼 Copiar Música Subida al Reproductor
+        </button>
+        {% endif %}
+
+        <!-- Music sections -->
+        <div class="music-sections">
+            <!-- Uploaded music -->
+            <div class="music-section">
+                <h3>🎵 Tu Música Subida</h3>
+                {% if uploaded_files %}
+                    <div class="file-list">
+                        {% for file in uploaded_files %}
+                        <div class="file-item">
+                            <div class="file-info">
+                                <div class="file-name">{{ file.name }}</div>
+                                <div class="file-size">{{ file.size }} MB</div>
+                            </div>
+                            <div class="file-actions">
+                                <a href="/delete/{{ file.name }}" class="btn-small btn-danger" 
+                                   onclick="return confirm('¿Eliminar {{ file.name }}?')">🗑️</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="no-files">
+                        📂 No hay archivos subidos aún.<br>
+                        ¡Sube tu música favorita!
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Sample music -->
+            <div class="music-section">
+                <h3>🎼 Música de Ejemplo</h3>
+                {% if sample_files %}
+                    <div class="file-list">
+                        {% for file in sample_files %}
+                        <div class="file-item sample">
+                            <div class="file-info">
+                                <div class="file-name">{{ file.name }}</div>
+                                <div class="file-size">{{ file.size }} MB</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="no-files">
+                        📂 No hay archivos de ejemplo disponibles.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div style="margin-top: 30px; padding: 20px; background: #e7f3ff; border-radius: 10px; border-left: 4px solid #007bff;">
+            <h3 style="color: #007bff; margin-bottom: 15px;">📋 Instrucciones:</h3>
+            <ol style="color: #333; line-height: 1.6;">
+                <li>Selecciona tus archivos de música usando el botón "Seleccionar Archivos"</li>
+                <li>Haz clic en "Subir Archivos" para cargarlos al servidor</li>
+                <li>Una vez subidos, haz clic en "Copiar Música Subida al Reproductor"</li>
+                <li>Abre el reproductor de música y usa "Add Songs" para agregar tu música</li>
+                <li>¡Disfruta de tu música personalizada!</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Update file input label with selected files
+        document.getElementById('files').addEventListener('change', function() {
+            const label = document.querySelector('.file-input-label');
+            const count = this.files.length;
+            if (count > 0) {
+                label.textContent = `🎵 ${count} archivo(s) seleccionado(s)`;
+            } else {
+                label.textContent = '🎵 Seleccionar Archivos de Música';
+            }
+        });
+    </script>
+</body>
+</html>

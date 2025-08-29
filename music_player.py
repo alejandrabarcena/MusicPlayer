@@ -209,6 +209,8 @@ class MusicPlayer:
                             'relief': tk.RAISED, 'bd': 2, 'padx': 10, 'pady': 3}
         
         tk.Button(file_frame, text="Add Songs", command=self.add_songs, **file_button_style).pack(side=tk.LEFT, padx=5)
+        tk.Button(file_frame, text="📁 Upload Music", command=self.open_upload_page, **file_button_style).pack(side=tk.LEFT, padx=5)
+        tk.Button(file_frame, text="🔄 Refresh Library", command=self.refresh_music_library, **file_button_style).pack(side=tk.LEFT, padx=5)
         tk.Button(file_frame, text="Remove Song", command=self.remove_song, **file_button_style).pack(side=tk.LEFT, padx=5)
         tk.Button(file_frame, text="Clear Playlist", command=self.clear_playlist, **file_button_style).pack(side=tk.LEFT, padx=5)
         
@@ -261,6 +263,61 @@ class MusicPlayer:
                 self.playlist_listbox.insert(tk.END, filename)
         
         self.save_playlist_to_file()
+    
+    def open_upload_page(self):
+        """Open the music upload web page"""
+        import webbrowser
+        try:
+            webbrowser.open('http://localhost:5000')
+            messagebox.showinfo("Upload Music", 
+                              "Se abrió la página web para subir música.\n\n" +
+                              "Instrucciones:\n" +
+                              "1. Sube tus archivos MP3, WAV, OGG, etc.\n" +
+                              "2. Haz clic en 'Copiar al Reproductor'\n" +
+                              "3. Vuelve aquí y haz clic en 'Refresh Library'")
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo abrir el navegador: {str(e)}\n\n" +
+                               "Abre manualmente: http://localhost:5000")
+    
+    def refresh_music_library(self):
+        """Refresh the music library with all available songs"""
+        try:
+            # Check for uploaded music files
+            uploaded_dir = "uploaded_music"
+            sample_dir = "sample_music"
+            
+            added_count = 0
+            
+            # Add files from uploaded_music directory
+            if os.path.exists(uploaded_dir):
+                for filename in os.listdir(uploaded_dir):
+                    if filename.lower().endswith(('.mp3', '.wav', '.ogg', '.flac', '.m4a')):
+                        file_path = os.path.join(uploaded_dir, filename)
+                        if file_path not in self.playlist:
+                            self.playlist.append(file_path)
+                            self.playlist_listbox.insert(tk.END, f"📁 {filename}")
+                            added_count += 1
+            
+            # Add files from sample_music directory  
+            if os.path.exists(sample_dir):
+                for filename in os.listdir(sample_dir):
+                    if filename.lower().endswith(('.mp3', '.wav', '.ogg', '.flac', '.m4a')):
+                        file_path = os.path.join(sample_dir, filename)
+                        if file_path not in self.playlist:
+                            self.playlist.append(file_path)
+                            self.playlist_listbox.insert(tk.END, f"🎵 {filename}")
+                            added_count += 1
+            
+            if added_count > 0:
+                messagebox.showinfo("Library Updated", f"Se agregaron {added_count} archivo(s) nuevos a la biblioteca.")
+                self.save_playlist_to_file()
+            else:
+                messagebox.showinfo("Library Current", "No se encontraron archivos nuevos.\n\n" +
+                                  "Si subiste música nueva, asegúrate de hacer clic en\n" +
+                                  "'Copiar al Reproductor' en la página web.")
+                
+        except Exception as e:
+            messagebox.showerror("Error", f"Error al actualizar la biblioteca: {str(e)}")
     
     def remove_song(self):
         selection = self.playlist_listbox.curselection()

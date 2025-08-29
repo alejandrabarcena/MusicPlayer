@@ -236,6 +236,37 @@ def uploaded_cover(filename):
     """Serve uploaded album covers"""
     return send_from_directory(COVERS_FOLDER, filename)
 
+@app.errorhandler(404)
+def not_found_error(error):
+    """Custom 404 page with helpful navigation"""
+    return '''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Página No Encontrada - Welcome Classical Music</title>
+        <style>
+            body { font-family: Arial, sans-serif; background: #f7f4f1; text-align: center; padding: 50px; }
+            .container { max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+            h1 { color: #ff6b35; margin-bottom: 20px; }
+            .logo { width: 200px; margin-bottom: 30px; }
+            .btn { background: #ff6b35; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; margin: 10px; }
+            .btn:hover { background: #e55a2b; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <img src="/static/logo.png" alt="Welcome Classical Music" class="logo">
+            <h1>🎵 Página No Encontrada</h1>
+            <p>La página que buscas no existe.</p>
+            <p>Aquí tienes algunas opciones:</p>
+            <a href="/" class="btn">🏠 Página Principal</a>
+            <a href="/#upload" class="btn">📁 Subir Música</a>
+            <a href="/#covers" class="btn">🖼️ Subir Carátulas</a>
+        </div>
+    </body>
+    </html>
+    ''', 404
+
 if __name__ == '__main__':
     print("🎵 Servidor de subida de música iniciado")
     print("📁 Sube tus archivos MP3, WAV, OGG, FLAC o M4A")

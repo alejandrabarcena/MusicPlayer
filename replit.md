@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a desktop music player application built with Python using Tkinter for the GUI and Pygame for audio playback functionality. The application provides a complete music player experience with playlist management, audio controls, volume adjustment, and metadata extraction capabilities. It supports common audio formats including MP3, OGG, and WAV files, with an intuitive graphical interface for managing and playing music collections.
+This is a desktop music player application built with Python using Tkinter for the GUI and Pygame for audio playback functionality. The application provides a complete music player experience with playlist management, audio controls, volume adjustment, metadata extraction, and classical music search capabilities. It supports common audio formats including MP3, OGG, and WAV files, with an intuitive graphical interface for managing and playing music collections. The application now includes integrated MusicBrainz API search functionality specifically designed for classical music discovery.
 
 ## User Preferences
 
@@ -41,6 +41,8 @@ Preferred communication style: Simple, everyday language.
 - **Volume Control**: Visual volume slider with instant feedback
 - **Playlist Display**: Interactive playlist view with selection capabilities
 - **Keyboard Shortcuts**: Comprehensive keyboard navigation support
+- **Classical Music Search**: Integrated MusicBrainz API search with composer, work, and recording lookup
+- **Historical Period Filters**: Quick search by musical periods (Baroque, Classical, Romantic, Modern)
 
 ## External Dependencies
 
@@ -51,12 +53,22 @@ Preferred communication style: Simple, everyday language.
 - **JSON**: Playlist persistence using standard library JSON module
 - **Threading**: Background operations using Python's threading module
 - **OS**: File system operations using standard library
+- **Requests**: HTTP client library for MusicBrainz API integration
+- **Time**: Rate limiting and timing operations for API compliance
 
 ### Optional Dependencies
 - **Mutagen**: Third-party library for audio metadata extraction and manipulation
   - Supports MP3, OGG Vorbis, and WAV metadata
   - Gracefully handles absence with fallback functionality
   - Provides ID3 tag reading capabilities
+
+### MusicBrainz Integration
+- **MusicBrainz API**: Classical music database search integration
+  - Composer search with biographical information and historical periods
+  - Musical work (composition) search with type classification
+  - Recording search with artist credits and album information
+  - Rate-limited API calls (1 request/second) for server compliance
+  - Background threading for non-blocking search operations
 
 ### System Requirements
 - **Audio System**: Requires system audio drivers compatible with Pygame mixer

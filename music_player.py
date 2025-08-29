@@ -6,6 +6,7 @@ import threading
 import time
 from pathlib import Path
 import json
+from musicbrainz_api import MusicBrainzAPI
 
 try:
     from mutagen.mp3 import MP3
@@ -44,6 +45,9 @@ class MusicPlayer:
         self.duration = 0
         self.position_update_thread = None
         self.stop_position_thread = False
+        
+        # Initialize MusicBrainz API for classical music search
+        self.mb_api = MusicBrainzAPI()
         
         # Create GUI
         self.setup_gui()
@@ -128,6 +132,62 @@ class MusicPlayer:
         self.volume_label = tk.Label(volume_frame, text="70%", font=('Arial', 10), 
                                     bg='#2c3e50', fg='white')
         self.volume_label.pack(side=tk.LEFT)
+        
+        # Classical Music Search Frame
+        search_frame = tk.Frame(main_frame, bg='#8e44ad', relief=tk.RAISED, bd=2)
+        search_frame.pack(fill=tk.X, pady=(0, 10))
+        
+        tk.Label(search_frame, text="🎼 Búsqueda de Música Clásica", font=('Arial', 12, 'bold'), 
+                bg='#8e44ad', fg='white').pack(pady=5)
+        
+        # Search controls
+        search_controls = tk.Frame(search_frame, bg='#8e44ad')
+        search_controls.pack(fill=tk.X, padx=10, pady=(0, 10))
+        
+        # Search entry
+        self.search_var = tk.StringVar()
+        tk.Label(search_controls, text="Buscar:", font=('Arial', 10), 
+                bg='#8e44ad', fg='white').pack(side=tk.LEFT)
+        
+        self.search_entry = tk.Entry(search_controls, textvariable=self.search_var, 
+                                    font=('Arial', 10), width=30)
+        self.search_entry.pack(side=tk.LEFT, padx=(5, 10))
+        self.search_entry.bind('<Return>', lambda e: self.search_classical_music())
+        
+        # Search type selection
+        self.search_type = tk.StringVar(value="composer")
+        search_options = [("Compositor", "composer"), ("Obra", "work"), ("Grabación", "recording")]
+        
+        for text, value in search_options:
+            tk.Radiobutton(search_controls, text=text, variable=self.search_type, 
+                          value=value, bg='#8e44ad', fg='white', selectcolor='#6c3483',
+                          font=('Arial', 9)).pack(side=tk.LEFT, padx=5)
+        
+        # Search buttons
+        search_button_style = {'font': ('Arial', 10), 'bg': '#9b59b6', 'fg': 'white', 
+                              'relief': tk.RAISED, 'bd': 2, 'padx': 15, 'pady': 3}
+        
+        tk.Button(search_controls, text="Buscar", command=self.search_classical_music, 
+                 **search_button_style).pack(side=tk.LEFT, padx=5)
+        
+        # Classical periods quick search
+        periods_frame = tk.Frame(search_frame, bg='#8e44ad')
+        periods_frame.pack(fill=tk.X, padx=10, pady=(0, 10))
+        
+        tk.Label(periods_frame, text="Períodos:", font=('Arial', 9), 
+                bg='#8e44ad', fg='white').pack(side=tk.LEFT)
+        
+        period_style = {'font': ('Arial', 8), 'bg': '#7d3c98', 'fg': 'white', 
+                       'relief': tk.RAISED, 'bd': 1, 'padx': 8, 'pady': 2}
+        
+        periods = [("Barroco", "baroque"), ("Clásico", "classical"), ("Romántico", "romantic"), ("Moderno", "modern")]
+        for text, period in periods:
+            tk.Button(periods_frame, text=text, command=lambda p=period: self.search_by_period(p), 
+                     **period_style).pack(side=tk.LEFT, padx=2)
+        
+        # Search results frame
+        self.search_results_frame = tk.Frame(search_frame, bg='#8e44ad')
+        self.search_results_frame.pack(fill=tk.X, padx=10, pady=(0, 10))
         
         # Bottom frame for playlist and file operations
         bottom_frame = tk.Frame(main_frame, bg='#2c3e50')
@@ -465,6 +525,179 @@ class MusicPlayer:
                     
         except Exception as e:
             print(f"Error loading playlist: {e}")
+    
+    def search_classical_music(self):
+        """Search for classical music using MusicBrainz API"""
+        query = self.search_var.get().strip()
+        search_type = self.search_type.get()
+        
+        if not query:
+            messagebox.showwarning("Búsqueda Vacía", "Por favor ingresa un término de búsqueda.")
+            return
+        
+        # Clear previous results
+        for widget in self.search_results_frame.winfo_children():
+            widget.destroy()
+        
+        # Show loading message
+        loading_label = tk.Label(self.search_results_frame, text="Buscando...", 
+                               bg='#8e44ad', fg='white', font=('Arial', 10))
+        loading_label.pack(pady=5)
+        
+        # Start search in background thread
+        search_thread = threading.Thread(target=self._perform_search, 
+                                        args=(query, search_type), daemon=True)
+        search_thread.start()
+    
+    def _perform_search(self, query, search_type):
+        """Perform search in background thread"""
+        try:
+            if search_type == "composer":
+                results = self.mb_api.search_artist(query, limit=8)
+            elif search_type == "work":
+                results = self.mb_api.search_work(query, limit=8)
+            elif search_type == "recording":
+                results = self.mb_api.search_recording(query, limit=8)
+            else:
+                results = []
+            
+            # Update UI in main thread
+            self.root.after(0, self._display_search_results, results, search_type)
+            
+        except Exception as e:
+            error_msg = f"Error en la búsqueda: {str(e)}"
+            self.root.after(0, self._display_error, error_msg)
+    
+    def _display_search_results(self, results, search_type):
+        """Display search results in the UI"""
+        # Clear previous results
+        for widget in self.search_results_frame.winfo_children():
+            widget.destroy()
+        
+        if not results:
+            no_results = tk.Label(self.search_results_frame, text="No se encontraron resultados.", 
+                                bg='#8e44ad', fg='white', font=('Arial', 10))
+            no_results.pack(pady=5)
+            return
+        
+        # Create results display
+        results_title = tk.Label(self.search_results_frame, 
+                               text=f"Resultados ({len(results)}):", 
+                               bg='#8e44ad', fg='white', font=('Arial', 10, 'bold'))
+        results_title.pack(pady=5)
+        
+        # Create scrollable frame for results
+        canvas = tk.Canvas(self.search_results_frame, bg='#8e44ad', height=120)
+        scrollbar_results = tk.Scrollbar(self.search_results_frame, orient="vertical", command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas, bg='#8e44ad')
+        
+        scrollable_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar_results.set)
+        
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar_results.pack(side="right", fill="y")
+        
+        # Display each result
+        for i, result in enumerate(results):
+            result_frame = tk.Frame(scrollable_frame, bg='#7d3c98', relief=tk.RAISED, bd=1)
+            result_frame.pack(fill=tk.X, padx=5, pady=2)
+            
+            if search_type == "composer":
+                self._create_composer_result(result_frame, result)
+            elif search_type == "work":
+                self._create_work_result(result_frame, result)
+            elif search_type == "recording":
+                self._create_recording_result(result_frame, result)
+    
+    def _create_composer_result(self, parent, composer):
+        """Create display for composer search result"""
+        main_text = f"{composer['name']} {composer['life_span']}"
+        if composer['country']:
+            main_text += f" ({composer['country']})"
+        
+        tk.Label(parent, text=main_text, bg='#7d3c98', fg='white', 
+                font=('Arial', 9, 'bold'), anchor='w').pack(fill=tk.X, padx=5, pady=2)
+        
+        if composer['sort_name'] != composer['name']:
+            tk.Label(parent, text=f"También conocido como: {composer['sort_name']}", 
+                    bg='#7d3c98', fg='#d2b4de', font=('Arial', 8), anchor='w').pack(fill=tk.X, padx=5)
+    
+    def _create_work_result(self, parent, work):
+        """Create display for work search result"""
+        title_text = work['title']
+        if work['composer']:
+            title_text += f" - {work['composer']}"
+        
+        tk.Label(parent, text=title_text, bg='#7d3c98', fg='white', 
+                font=('Arial', 9, 'bold'), anchor='w').pack(fill=tk.X, padx=5, pady=2)
+        
+        if work['type']:
+            tk.Label(parent, text=f"Tipo: {work['type']}", 
+                    bg='#7d3c98', fg='#d2b4de', font=('Arial', 8), anchor='w').pack(fill=tk.X, padx=5)
+    
+    def _create_recording_result(self, parent, recording):
+        """Create display for recording search result"""
+        title_text = recording['title']
+        if recording['artist_credit']:
+            title_text += f" - {recording['artist_credit']}"
+        
+        tk.Label(parent, text=title_text, bg='#7d3c98', fg='white', 
+                font=('Arial', 9, 'bold'), anchor='w').pack(fill=tk.X, padx=5, pady=2)
+        
+        if recording['releases']:
+            releases_text = "Álbumes: " + ", ".join(recording['releases'][:2])
+            if len(recording['releases']) > 2:
+                releases_text += f" (+{len(recording['releases']) - 2} más)"
+            tk.Label(parent, text=releases_text, 
+                    bg='#7d3c98', fg='#d2b4de', font=('Arial', 8), anchor='w').pack(fill=tk.X, padx=5)
+        
+        if recording['length']:
+            duration = recording['length'] // 1000  # Convert from ms to seconds
+            minutes = duration // 60
+            seconds = duration % 60
+            tk.Label(parent, text=f"Duración: {minutes}:{seconds:02d}", 
+                    bg='#7d3c98', fg='#d2b4de', font=('Arial', 8), anchor='w').pack(fill=tk.X, padx=5)
+    
+    def search_by_period(self, period):
+        """Search classical music by historical period"""
+        # Clear search entry and set it to the period
+        self.search_var.set("")
+        self.search_type.set("composer")
+        
+        # Clear previous results
+        for widget in self.search_results_frame.winfo_children():
+            widget.destroy()
+        
+        # Show loading message
+        loading_label = tk.Label(self.search_results_frame, text=f"Buscando compositores del período {period}...", 
+                               bg='#8e44ad', fg='white', font=('Arial', 10))
+        loading_label.pack(pady=5)
+        
+        # Start search in background thread
+        period_thread = threading.Thread(target=self._perform_period_search, 
+                                        args=(period,), daemon=True)
+        period_thread.start()
+    
+    def _perform_period_search(self, period):
+        """Perform period search in background thread"""
+        try:
+            results = self.mb_api.search_classical_by_period(period)
+            # Update UI in main thread
+            self.root.after(0, self._display_search_results, results, "composer")
+            
+        except Exception as e:
+            error_msg = f"Error en la búsqueda por período: {str(e)}"
+            self.root.after(0, self._display_error, error_msg)
+    
+    def _display_error(self, error_msg):
+        """Display error message in search results"""
+        for widget in self.search_results_frame.winfo_children():
+            widget.destroy()
+        
+        error_label = tk.Label(self.search_results_frame, text=error_msg, 
+                             bg='#8e44ad', fg='#ff6b6b', font=('Arial', 10))
+        error_label.pack(pady=5)
     
     def on_closing(self):
         # Stop any playing music and cleanup

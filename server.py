@@ -16,16 +16,23 @@ app.secret_key = 'music_player_upload_secret_key_2024'
 # Configuration
 UPLOAD_FOLDER = 'uploaded_music'
 SAMPLE_FOLDER = 'sample_music'
+COVERS_FOLDER = 'album_covers'
 ALLOWED_EXTENSIONS = {'mp3', 'wav', 'ogg', 'flac', 'm4a'}
+ALLOWED_IMAGE_EXTENSIONS = {'jpg', 'jpeg', 'png', 'webp'}
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB max file size
 
 # Ensure upload directory exists
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(SAMPLE_FOLDER, exist_ok=True)
+os.makedirs(COVERS_FOLDER, exist_ok=True)
 
 def allowed_file(filename):
     """Check if file has an allowed extension"""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def allowed_image_file(filename):
+    """Check if file has an allowed image extension"""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_IMAGE_EXTENSIONS
 
 def get_file_size_mb(filepath):
     """Get file size in MB"""
@@ -59,9 +66,17 @@ def index():
                     'type': 'sample'
                 })
     
+    # Get album covers
+    covers = []
+    if os.path.exists(COVERS_FOLDER):
+        for filename in os.listdir(COVERS_FOLDER):
+            if allowed_image_file(filename):
+                covers.append(filename)
+    
     return render_template('index.html', 
                          uploaded_files=uploaded_files, 
                          sample_files=sample_files,
+                         covers=covers,
                          total_uploaded=len(uploaded_files),
                          total_sample=len(sample_files))
 
@@ -188,6 +203,38 @@ def copy_to_player():
         flash('No hay archivos nuevos para copiar', 'info')
     
     return redirect(url_for('index'))
+
+@app.route('/upload_cover', methods=['POST'])
+def upload_cover():
+    """Handle album cover upload"""
+    if 'cover' not in request.files:
+        flash('No se seleccionó ninguna imagen', 'error')
+        return redirect(url_for('index'))
+    
+    file = request.files['cover']
+    
+    if file.filename == '':
+        flash('No se seleccionó ninguna imagen', 'error')
+        return redirect(url_for('index'))
+    
+    if file and allowed_image_file(file.filename):
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(COVERS_FOLDER, filename)
+        
+        try:
+            file.save(file_path)
+            flash(f'Carátula "{filename}" subida exitosamente', 'success')
+        except Exception as e:
+            flash(f'Error al subir la carátula: {str(e)}', 'error')
+    else:
+        flash('Tipo de archivo no válido. Solo se permiten: JPG, PNG, WEBP', 'error')
+    
+    return redirect(url_for('index'))
+
+@app.route('/covers/<filename>')
+def uploaded_cover(filename):
+    """Serve uploaded album covers"""
+    return send_from_directory(COVERS_FOLDER, filename)
 
 if __name__ == '__main__':
     print("🎵 Servidor de subida de música iniciado")

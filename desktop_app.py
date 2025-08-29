@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 import calendar
 import webbrowser
 import subprocess
+import glob
 from pathlib import Path
 from PIL import Image, ImageTk
 
@@ -308,6 +309,10 @@ class MusicPlayerWidget(DesktopWidget):
         super().__init__(parent, "Music Player", "#ffffff")
         self.current_song = "No song playing"
         self.is_playing = False
+        self.current_cover_index = 0
+        self.available_covers = []
+        self.art_label = None
+        self.load_album_covers()
         self.setup_ui()
         
     def setup_ui(self):
@@ -330,10 +335,11 @@ class MusicPlayerWidget(DesktopWidget):
         art_frame.pack_propagate(False)
         art_frame.pack(side=tk.LEFT, padx=(0, 20))
         
-        # Add album art placeholder with figure
-        art_label = tk.Label(art_frame, text="♪\n♫\n♪", font=('Arial', 20), 
-                           fg='white', bg='#333333')
-        art_label.pack(expand=True)
+        # Add album art with click functionality
+        self.art_label = tk.Label(art_frame, text="♪\n♫\n♪", font=('Arial', 20), 
+                           fg='white', bg='#333333', cursor='hand2')
+        self.art_label.pack(expand=True)
+        self.art_label.bind("<Button-1>", self.cycle_album_cover)
         
         # Song info and controls
         info_frame = tk.Frame(content_frame, bg=self.bg_color)
@@ -377,6 +383,9 @@ class MusicPlayerWidget(DesktopWidget):
         tk.Button(controls, text="⏭", command=self.next_song, **button_style).pack(side=tk.LEFT, padx=5)
         tk.Button(controls, text="⇄", command=self.repeat, **button_style).pack(side=tk.LEFT, padx=(10, 0))
         
+        # Now that all UI elements are created, load and display covers
+        self.display_current_cover()
+        
     def toggle_play(self):
         self.is_playing = not self.is_playing
         self.play_btn.config(text="⏸" if self.is_playing else "▶")
@@ -396,6 +405,66 @@ class MusicPlayerWidget(DesktopWidget):
     def repeat(self):
         # Implement repeat logic
         pass
+    
+    def load_album_covers(self):
+        """Load available album covers from the covers folder"""
+        self.available_covers = []
+        covers_folder = "album_covers"
+        
+        if os.path.exists(covers_folder):
+            # Support common image formats
+            for ext in ['*.jpg', '*.jpeg', '*.png', '*.webp']:
+                self.available_covers.extend(glob.glob(os.path.join(covers_folder, ext)))
+        
+        # Reset index if we have covers
+        if self.available_covers:
+            self.current_cover_index = 0
+    
+    def display_current_cover(self):
+        """Display the current album cover or placeholder"""
+        if not self.art_label:
+            return
+            
+        if self.available_covers:
+            try:
+                # Load and resize the current cover
+                cover_path = self.available_covers[self.current_cover_index]
+                image = Image.open(cover_path)
+                
+                # Resize to fit the 120x120 frame
+                image = image.resize((120, 120), Image.Resampling.LANCZOS)
+                photo = ImageTk.PhotoImage(image)
+                
+                # Update the label
+                self.art_label.config(image=photo, text="")
+                self.art_label.image = photo  # Keep a reference
+                
+                # Update song title to show cover filename
+                cover_name = os.path.basename(cover_path)
+                self.song_label.config(text=f"Displaying: {cover_name}\nClick cover to cycle")
+                
+            except Exception as e:
+                print(f"Error loading cover: {e}")
+                self.show_placeholder()
+        else:
+            self.show_placeholder()
+    
+    def show_placeholder(self):
+        """Show the default music note placeholder"""
+        if self.art_label:
+            self.art_label.config(image="", text="♪\n♫\n♪")
+            self.art_label.image = None
+            self.song_label.config(text="Welcome Classical Music\nUpload covers via web interface")
+    
+    def cycle_album_cover(self, event=None):
+        """Cycle to the next album cover when clicked"""
+        if self.available_covers:
+            self.current_cover_index = (self.current_cover_index + 1) % len(self.available_covers)
+            self.display_current_cover()
+        else:
+            # Refresh the covers list in case new ones were added
+            self.load_album_covers()
+            self.display_current_cover()
         
     def open_full_player(self):
         """Open the full music player application"""

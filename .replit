@@ -33,6 +33,7 @@ outputType = "webview"
 
 [deployment]
 deploymentTarget = "cloudrun"
+run = ["sh", "-c", "python3 main.py"]
 
 [[ports]]
 localPort = 3000

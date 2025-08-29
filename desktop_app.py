@@ -73,50 +73,234 @@ class ClockWidget(DesktopWidget):
         self.frame.after(1000, self.update_time)
 
 class CalendarWidget(DesktopWidget):
-    """Calendar widget showing current month"""
+    """Enhanced Calendar widget with events and functionality"""
     def __init__(self, parent):
         super().__init__(parent, "Calendar", "#ffffff")
+        self.current_date = datetime.now()
+        self.events = self.load_events()
         self.setup_ui()
         
+    def load_events(self):
+        """Load events from file"""
+        try:
+            if os.path.exists('calendar_events.json'):
+                with open('calendar_events.json', 'r', encoding='utf-8') as f:
+                    return json.load(f)
+        except Exception:
+            pass
+        return {}
+    
+    def save_events(self):
+        """Save events to file"""
+        try:
+            with open('calendar_events.json', 'w', encoding='utf-8') as f:
+                json.dump(self.events, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            print(f"Error saving events: {e}")
+        
     def setup_ui(self):
-        # Title
-        title_label = tk.Label(self.frame, text="AUGUST 2025", 
-                              font=('Arial', 14, 'bold'), 
-                              fg='#333', bg=self.bg_color)
-        title_label.pack(pady=5)
+        # Navigation header
+        nav_frame = tk.Frame(self.frame, bg=self.bg_color)
+        nav_frame.pack(fill='x', padx=5, pady=5)
+        
+        # Previous month button
+        tk.Button(nav_frame, text="◀", font=('Arial', 12), bg='#ff6b35', fg='white',
+                 relief=tk.FLAT, width=3, command=self.prev_month).pack(side=tk.LEFT)
+        
+        # Month/Year title
+        month_name = self.current_date.strftime("%B %Y").upper()
+        self.title_label = tk.Label(nav_frame, text=month_name, 
+                                   font=('Arial', 14, 'bold'), 
+                                   fg='#333', bg=self.bg_color)
+        self.title_label.pack(side=tk.LEFT, expand=True)
+        
+        # Next month button
+        tk.Button(nav_frame, text="▶", font=('Arial', 12), bg='#ff6b35', fg='white',
+                 relief=tk.FLAT, width=3, command=self.next_month).pack(side=tk.RIGHT)
         
         # Calendar grid
-        cal_frame = tk.Frame(self.frame, bg=self.bg_color)
-        cal_frame.pack(padx=10, pady=5)
+        self.cal_frame = tk.Frame(self.frame, bg=self.bg_color)
+        self.cal_frame.pack(padx=10, pady=5)
+        
+        self.update_calendar()
+        
+        # Events section
+        events_frame = tk.Frame(self.frame, bg=self.bg_color)
+        events_frame.pack(fill='x', padx=10, pady=5)
+        
+        events_label = tk.Label(events_frame, text="Today's Events:", 
+                               font=('Arial', 10, 'bold'), 
+                               fg='#333', bg=self.bg_color)
+        events_label.pack(anchor='w')
+        
+        self.events_text = tk.Label(events_frame, text="No events today", 
+                                   font=('Arial', 9), fg='#666', bg=self.bg_color,
+                                   justify=tk.LEFT, wraplength=200)
+        self.events_text.pack(anchor='w')
+        
+        self.update_today_events()
+    
+    def update_calendar(self):
+        """Update the calendar display"""
+        # Clear existing calendar
+        for widget in self.cal_frame.winfo_children():
+            widget.destroy()
         
         # Day headers
         days = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
         for i, day in enumerate(days):
-            label = tk.Label(cal_frame, text=day, font=('Arial', 10, 'bold'),
+            label = tk.Label(self.cal_frame, text=day, font=('Arial', 10, 'bold'),
                            fg='#666', bg=self.bg_color, width=3)
             label.grid(row=0, column=i, padx=1, pady=1)
         
         # Calendar days
+        cal = calendar.monthcalendar(self.current_date.year, self.current_date.month)
         now = datetime.now()
-        cal = calendar.monthcalendar(now.year, now.month)
         
         for week_num, week in enumerate(cal, 1):
             for day_num, day in enumerate(week):
                 if day == 0:
                     continue
-                    
-                # Highlight current day
-                if day == now.day:
+                
+                date_key = f"{self.current_date.year}-{self.current_date.month:02d}-{day:02d}"
+                has_events = date_key in self.events
+                
+                # Determine colors
+                if (day == now.day and 
+                    self.current_date.month == now.month and 
+                    self.current_date.year == now.year):
                     bg_color = '#ff6b35'
                     fg_color = 'white'
+                elif has_events:
+                    bg_color = '#ffe5d4'
+                    fg_color = '#333'
                 else:
                     bg_color = self.bg_color
                     fg_color = '#333'
-                    
-                label = tk.Label(cal_frame, text=str(day), 
-                               font=('Arial', 10), width=3,
-                               fg=fg_color, bg=bg_color)
-                label.grid(row=week_num, column=day_num, padx=1, pady=1)
+                
+                # Create clickable day button
+                day_btn = tk.Button(self.cal_frame, text=str(day), 
+                                   font=('Arial', 10), width=3,
+                                   fg=fg_color, bg=bg_color, relief=tk.FLAT,
+                                   command=lambda d=day: self.day_clicked(d))
+                day_btn.grid(row=week_num, column=day_num, padx=1, pady=1)
+                
+                # Add event indicator
+                if has_events:
+                    day_btn.config(font=('Arial', 10, 'bold'))
+    
+    def day_clicked(self, day):
+        """Handle day click - add/view events"""
+        date_key = f"{self.current_date.year}-{self.current_date.month:02d}-{day:02d}"
+        
+        # Create event dialog
+        dialog = tk.Toplevel(self.frame)
+        dialog.title(f"Events for {self.current_date.strftime('%B')} {day}")
+        dialog.geometry("400x300")
+        dialog.configure(bg='#f7f4f1')
+        
+        # Center the dialog
+        dialog.transient(self.frame.winfo_toplevel())
+        dialog.grab_set()
+        
+        # Title
+        title = tk.Label(dialog, text=f"Events for {self.current_date.strftime('%B')} {day}", 
+                        font=('Arial', 14, 'bold'), fg='#333', bg='#f7f4f1')
+        title.pack(pady=10)
+        
+        # Existing events
+        events_frame = tk.Frame(dialog, bg='#f7f4f1')
+        events_frame.pack(fill='both', expand=True, padx=20, pady=10)
+        
+        # Show existing events
+        if date_key in self.events:
+            for i, event in enumerate(self.events[date_key]):
+                event_frame = tk.Frame(events_frame, bg='#ffffff', relief=tk.RAISED, bd=1)
+                event_frame.pack(fill='x', pady=2)
+                
+                event_label = tk.Label(event_frame, text=event, font=('Arial', 10),
+                                      fg='#333', bg='#ffffff', anchor='w')
+                event_label.pack(side=tk.LEFT, fill='x', expand=True, padx=5, pady=5)
+                
+                delete_btn = tk.Button(event_frame, text="✖", font=('Arial', 8),
+                                      bg='#ff6b35', fg='white', relief=tk.FLAT,
+                                      command=lambda idx=i: self.delete_event(date_key, idx, dialog))
+                delete_btn.pack(side=tk.RIGHT, padx=5, pady=5)
+        
+        # Add new event
+        add_frame = tk.Frame(dialog, bg='#f7f4f1')
+        add_frame.pack(fill='x', padx=20, pady=10)
+        
+        tk.Label(add_frame, text="Add new event:", font=('Arial', 10, 'bold'),
+                fg='#333', bg='#f7f4f1').pack(anchor='w')
+        
+        entry = tk.Entry(add_frame, font=('Arial', 10), width=40)
+        entry.pack(pady=5, fill='x')
+        entry.focus()
+        
+        def add_event():
+            event_text = entry.get().strip()
+            if event_text:
+                if date_key not in self.events:
+                    self.events[date_key] = []
+                self.events[date_key].append(event_text)
+                self.save_events()
+                self.update_calendar()
+                self.update_today_events()
+                dialog.destroy()
+        
+        add_btn = tk.Button(add_frame, text="Add Event", font=('Arial', 10),
+                           bg='#ff6b35', fg='white', relief=tk.FLAT,
+                           command=add_event)
+        add_btn.pack(pady=5)
+        
+        # Bind Enter key to add event
+        entry.bind('<Return>', lambda e: add_event())
+    
+    def delete_event(self, date_key, event_index, dialog):
+        """Delete an event"""
+        if date_key in self.events and event_index < len(self.events[date_key]):
+            del self.events[date_key][event_index]
+            if not self.events[date_key]:  # Remove date if no events left
+                del self.events[date_key]
+            self.save_events()
+            self.update_calendar()
+            self.update_today_events()
+            dialog.destroy()
+            # Reopen the dialog to show updated events
+            self.day_clicked(int(date_key.split('-')[2]))
+    
+    def prev_month(self):
+        """Go to previous month"""
+        if self.current_date.month == 1:
+            self.current_date = self.current_date.replace(year=self.current_date.year - 1, month=12)
+        else:
+            self.current_date = self.current_date.replace(month=self.current_date.month - 1)
+        self.title_label.config(text=self.current_date.strftime("%B %Y").upper())
+        self.update_calendar()
+    
+    def next_month(self):
+        """Go to next month"""
+        if self.current_date.month == 12:
+            self.current_date = self.current_date.replace(year=self.current_date.year + 1, month=1)
+        else:
+            self.current_date = self.current_date.replace(month=self.current_date.month + 1)
+        self.title_label.config(text=self.current_date.strftime("%B %Y").upper())
+        self.update_calendar()
+    
+    def update_today_events(self):
+        """Update today's events display"""
+        today = datetime.now()
+        today_key = f"{today.year}-{today.month:02d}-{today.day:02d}"
+        
+        if today_key in self.events and self.events[today_key]:
+            events_text = "\n".join([f"• {event}" for event in self.events[today_key][:3]])
+            if len(self.events[today_key]) > 3:
+                events_text += f"\n... and {len(self.events[today_key]) - 3} more"
+        else:
+            events_text = "No events today"
+        
+        self.events_text.config(text=events_text)
 
 class MusicPlayerWidget(DesktopWidget):
     """Modern music player widget with album art"""

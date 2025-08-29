@@ -340,7 +340,7 @@ class MusicPlayerWidget(DesktopWidget):
         info_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
         # Song title - larger and more prominent
-        self.song_label = tk.Label(info_frame, text="HANNAH MORALES - I MISS YOU\nSO MUCH", 
+        self.song_label = tk.Label(info_frame, text="Welcome Classical Music\nSelect your favorite piece", 
                                   font=('Arial', 14, 'bold'), 
                                   fg='#333333', bg=self.bg_color, justify=tk.LEFT)
         self.song_label.pack(anchor='w', pady=(0, 15))

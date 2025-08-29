@@ -17,22 +17,11 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Music Player VNC"
+args = "Music Upload Server"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Music Upload Server"
-
-[[workflows.workflow]]
-name = "Music Player VNC"
-author = "agent"
-
-[workflows.workflow.metadata]
-outputType = "vnc"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python music_player.py"
+args = "Custom Desktop"
 
 [[workflows.workflow]]
 name = "Music Upload Server"
@@ -45,6 +34,17 @@ waitForPort = 5000
 
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[[workflows.workflow]]
+name = "Custom Desktop"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python desktop_app.py"
+
+[workflows.workflow.metadata]
+outputType = "vnc"
 
 [deployment]
 deploymentTarget = "cloudrun"

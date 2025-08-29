@@ -180,26 +180,30 @@
         }
 
         .playlist h3 {
-            color: #333;
+            color: #ff6b35;
             margin-bottom: 15px;
             text-align: center;
+            font-size: 1.4em;
+            font-weight: 600;
         }
 
         .song-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 8px;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
             background: #f8f9fa;
             cursor: pointer;
             transition: all 0.3s ease;
+            border: 2px solid transparent;
         }
 
         .song-item:hover {
             background: #e9ecef;
             transform: translateX(5px);
+            border-color: #ff6b35;
         }
 
         .song-item.playing {

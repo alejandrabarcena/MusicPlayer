@@ -683,15 +683,11 @@ class CustomDesktop:
         content_frame = tk.Frame(self.main_frame, bg='#f7f4f1')
         content_frame.pack(fill=tk.BOTH, expand=True)
         
-        # Left column - Calendar and Music Player
+        # Left column - Music Player focused
         left_column = tk.Frame(content_frame, bg='#f7f4f1')
         left_column.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 20))
         
-        # Calendar widget (top left)
-        self.calendar_widget = CalendarWidget(left_column)
-        self.calendar_widget.pack(pady=(0, 20))
-        
-        # Music player widget (large, center left)
+        # Music player widget (large, top left)
         self.music_widget = MusicPlayerWidget(left_column)
         self.music_widget.pack(pady=(0, 20))
         
@@ -719,9 +715,9 @@ class CustomDesktop:
         self.root.mainloop()
 
 if __name__ == "__main__":
-    print("🖥️  Iniciando Escritorio Personalizado Sou Jin AE")
-    print("📅 Widgets: Calendario, Reloj, Música, Notas, Apps, Archivos")
-    print("🎵 Reproductor de música integrado")
+    print("🖥️  Iniciando Welcome Classical Music")
+    print("🎵 Reproductor de música clásica elegante")
+    print("🎼 Con tu logo personalizado integrado")
     
     desktop = CustomDesktop()
     desktop.run()

@@ -74,3 +74,33 @@ Preferred communication style: Simple, everyday language.
 - **Audio System**: Requires system audio drivers compatible with Pygame mixer
 - **File System Access**: Needs read permissions for audio file directories
 - **Display System**: Requires GUI display capability for Tkinter interface
+
+## Deployment Configuration
+
+### Application Modes
+The application supports two distinct modes of operation:
+
+1. **Web Server Mode (Default)**: 
+   - Launched with `python main.py`
+   - Provides a web-based music upload interface on port 5000
+   - Suitable for cloud deployments (Autoscale or Reserved VM)
+   - Includes Flask server for file management and music uploads
+
+2. **Desktop GUI Mode**: 
+   - Launched with `python main.py desktop`
+   - Provides full desktop music player with Tkinter interface
+   - Requires VNC for cloud deployments
+   - Only suitable for Reserved VM deployments due to persistent GUI requirements
+
+### Deployment Types
+- **For Web Interface**: Use Autoscale Deployments (default) for cost-effective scaling
+- **For Desktop GUI**: Must use Reserved VM Deployments due to:
+  - GUI applications requiring persistent desktop environment
+  - VNC display requirements for remote GUI access
+  - Long-running desktop session needs
+  - Audio output requirements
+
+### Audio Configuration
+- Desktop mode requires `audio = true` in .replit configuration
+- GUI applications need VNC output type for proper display
+- Audio drivers and desktop environment dependencies are handled by Nix packages

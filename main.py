@@ -23,8 +23,8 @@ def main():
         print("📁 Sube tus archivos MP3, WAV, OGG, FLAC o M4A")
         print("🎼 Después podrás usarlos en el reproductor de música")
         
-        # Get port from environment or use default
-        port = int(os.environ.get('PORT', 3000))
+        # Get port from environment or use default (5000 for deployment compatibility)
+        port = int(os.environ.get('PORT', 5000))
         app.run(host='0.0.0.0', port=port, debug=False)
 
 if __name__ == '__main__':

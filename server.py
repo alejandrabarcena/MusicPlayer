@@ -140,14 +140,14 @@ def delete_file(filename):
 def serve_music(filename):
     """Serve music files"""
     # Check uploaded files first
-    uploaded_path = os.path.join(UPLOAD_FOLDER, secure_filename(filename))
+    uploaded_path = os.path.join(UPLOAD_FOLDER, filename)
     if os.path.exists(uploaded_path):
-        return send_from_directory(UPLOAD_FOLDER, secure_filename(filename))
+        return send_from_directory(UPLOAD_FOLDER, filename)
     
-    # Check sample files
-    sample_path = os.path.join(SAMPLE_FOLDER, secure_filename(filename))
+    # Check sample files  
+    sample_path = os.path.join(SAMPLE_FOLDER, filename)
     if os.path.exists(sample_path):
-        return send_from_directory(SAMPLE_FOLDER, secure_filename(filename))
+        return send_from_directory(SAMPLE_FOLDER, filename)
     
     return "Archivo no encontrado", 404
 

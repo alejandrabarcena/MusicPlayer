@@ -462,10 +462,15 @@ class MusicPlayer:
             self.playlist_listbox.see(self.current_index)
     
     def start_position_thread(self):
+        # Stop any existing thread first
+        self.stop_position_thread = True
+        if self.position_update_thread and self.position_update_thread.is_alive():
+            self.position_update_thread.join(timeout=1.0)
+        
+        # Start new thread
         self.stop_position_thread = False
-        if self.position_update_thread is None or not self.position_update_thread.is_alive():
-            self.position_update_thread = threading.Thread(target=self.update_position, daemon=True)
-            self.position_update_thread.start()
+        self.position_update_thread = threading.Thread(target=self.update_position, daemon=True)
+        self.position_update_thread.start()
     
     def update_position(self):
         while self.is_playing and not self.stop_position_thread:
@@ -522,10 +527,18 @@ class MusicPlayer:
                 if self.audio_available:
                     pygame.mixer.music.set_volume(self.volume)
                 
-                # Populate listbox
+                # Validate and populate listbox - only keep existing files
+                valid_playlist = []
                 for song in self.playlist:
-                    filename = os.path.basename(song)
-                    self.playlist_listbox.insert(tk.END, filename)
+                    if os.path.exists(song):
+                        valid_playlist.append(song)
+                        filename = os.path.basename(song)
+                        self.playlist_listbox.insert(tk.END, filename)
+                    else:
+                        print(f"Warning: File not found, removing from playlist: {song}")
+                
+                # Update playlist with only valid files
+                self.playlist = valid_playlist
                 
                 # Validate current_index
                 if self.current_index >= len(self.playlist):
@@ -540,7 +553,7 @@ class MusicPlayer:
         search_type = self.search_type.get()
         
         if not query:
-            messagebox.showwarning("Búsqueda Vacía", "Por favor ingresa un término de búsqueda.")
+            messagebox.showwarning("Empty Search", "Please enter a search term.")
             return
         
         # Clear previous results
@@ -548,7 +561,7 @@ class MusicPlayer:
             widget.destroy()
         
         # Show loading message
-        loading_label = tk.Label(self.search_results_frame, text="Buscando...", 
+        loading_label = tk.Label(self.search_results_frame, text="Searching...", 
                                bg='#8e44ad', fg='white', font=('Arial', 10))
         loading_label.pack(pady=5)
         
@@ -573,7 +586,7 @@ class MusicPlayer:
             self.root.after(0, self._display_search_results, results, search_type)
             
         except Exception as e:
-            error_msg = f"Error en la búsqueda: {str(e)}"
+            error_msg = f"Search error: {str(e)}"
             self.root.after(0, self._display_error, error_msg)
     
     def _display_search_results(self, results, search_type):
@@ -583,7 +596,7 @@ class MusicPlayer:
             widget.destroy()
         
         if not results:
-            no_results = tk.Label(self.search_results_frame, text="No se encontraron resultados.", 
+            no_results = tk.Label(self.search_results_frame, text="No results found.", 
                                 bg='#8e44ad', fg='white', font=('Arial', 10))
             no_results.pack(pady=5)
             return
@@ -747,7 +760,7 @@ class MusicPlayer:
             self.root.after(0, self._display_search_results, results, "composer")
             
         except Exception as e:
-            error_msg = f"Error en la búsqueda del Barroco: {str(e)}"
+            error_msg = f"Baroque search error: {str(e)}"
             self.root.after(0, self._display_error, error_msg)
     
     def _display_error(self, error_msg):

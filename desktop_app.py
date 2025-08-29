@@ -467,8 +467,8 @@ class CustomDesktop:
         try:
             # Load and display the actual logo image
             logo_image = Image.open('logo.png')
-            # Resize to fit nicely in the desktop (adjust size as needed)
-            logo_image = logo_image.resize((400, 200), Image.Resampling.LANCZOS)
+            # Keep original proportions but make it fit nicely (your logo is 500x500)
+            logo_image = logo_image.resize((300, 300), Image.Resampling.LANCZOS)
             self.logo_photo = ImageTk.PhotoImage(logo_image)
             
             logo_label = tk.Label(logo_frame, image=self.logo_photo, bg='#f7f4f1')

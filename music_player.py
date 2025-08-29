@@ -11,7 +11,7 @@ try:
     from mutagen.mp3 import MP3
     from mutagen.oggvorbis import OggVorbis
     from mutagen.wave import WAVE
-    from mutagen.id3 import ID3NoHeaderError
+    from mutagen.id3._util import ID3NoHeaderError
     MUTAGEN_AVAILABLE = True
 except ImportError:
     MUTAGEN_AVAILABLE = False
@@ -24,8 +24,14 @@ class MusicPlayer:
         self.root.geometry("800x600")
         self.root.configure(bg='#2c3e50')
         
-        # Initialize pygame mixer
-        pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=1024)
+        # Initialize pygame mixer with error handling for server environments
+        self.audio_available = True
+        try:
+            pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=1024)
+        except pygame.error as e:
+            print(f"Audio initialization failed: {e}")
+            print("Running in silent mode - GUI will work but no audio playback")
+            self.audio_available = False
         
         # Player state variables
         self.current_song = None
@@ -46,8 +52,9 @@ class MusicPlayer:
         # Load saved playlist if exists
         self.load_playlist_from_file()
         
-        # Set initial volume
-        pygame.mixer.music.set_volume(self.volume)
+        # Set initial volume (only if audio is available)
+        if self.audio_available:
+            pygame.mixer.music.set_volume(self.volume)
         
         # Bind window close event
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
@@ -250,9 +257,12 @@ class MusicPlayer:
             if self.is_playing:
                 self.stop_song()
             
-            # Load and play the song
-            pygame.mixer.music.load(song_path)
-            pygame.mixer.music.play()
+            # Load and play the song (only if audio is available)
+            if self.audio_available:
+                pygame.mixer.music.load(song_path)
+                pygame.mixer.music.play()
+            else:
+                messagebox.showinfo("No Audio", "Audio device not available. Running in silent mode.")
             
             self.current_song = song_path
             self.is_playing = True
@@ -274,18 +284,21 @@ class MusicPlayer:
     
     def pause_song(self):
         if self.is_playing and not self.is_paused:
-            pygame.mixer.music.pause()
+            if self.audio_available:
+                pygame.mixer.music.pause()
             self.is_paused = True
             self.play_pause_button.config(text="▶")
     
     def resume_song(self):
         if self.is_playing and self.is_paused:
-            pygame.mixer.music.unpause()
+            if self.audio_available:
+                pygame.mixer.music.unpause()
             self.is_paused = False
             self.play_pause_button.config(text="⏸")
     
     def stop_song(self):
-        pygame.mixer.music.stop()
+        if self.audio_available:
+            pygame.mixer.music.stop()
         self.is_playing = False
         self.is_paused = False
         self.position = 0
@@ -306,7 +319,8 @@ class MusicPlayer:
     
     def on_volume_change(self, value):
         self.volume = float(value) / 100
-        pygame.mixer.music.set_volume(self.volume)
+        if self.audio_available:
+            pygame.mixer.music.set_volume(self.volume)
         self.volume_label.config(text=f"{int(float(value))}%")
     
     def volume_up(self):
@@ -335,30 +349,35 @@ class MusicPlayer:
         
         if MUTAGEN_AVAILABLE:
             try:
+                audio_file = None
                 if file_path.lower().endswith('.mp3'):
+                    from mutagen.mp3 import MP3
                     audio_file = MP3(file_path)
-                    self.duration = audio_file.info.length
                 elif file_path.lower().endswith('.ogg'):
+                    from mutagen.oggvorbis import OggVorbis
                     audio_file = OggVorbis(file_path)
-                    self.duration = audio_file.info.length
                 elif file_path.lower().endswith('.wav'):
+                    from mutagen.wave import WAVE
                     audio_file = WAVE(file_path)
+                
+                if audio_file and hasattr(audio_file, 'info') and audio_file.info and hasattr(audio_file.info, 'length'):
                     self.duration = audio_file.info.length
                 else:
                     self.duration = 0
                 
-                # Extract metadata
-                if 'TIT2' in audio_file:  # MP3
-                    title = str(audio_file['TIT2'])
-                elif 'TITLE' in audio_file:  # OGG
-                    title = str(audio_file['TITLE'][0])
-                
-                if 'TPE1' in audio_file:  # MP3
-                    artist = str(audio_file['TPE1'])
-                elif 'ARTIST' in audio_file:  # OGG
-                    artist = str(audio_file['ARTIST'][0])
+                # Extract metadata if audio_file exists
+                if audio_file:
+                    if 'TIT2' in audio_file:  # MP3
+                        title = str(audio_file['TIT2'])
+                    elif 'TITLE' in audio_file:  # OGG
+                        title = str(audio_file['TITLE'][0])
                     
-            except (ID3NoHeaderError, Exception):
+                    if 'TPE1' in audio_file:  # MP3
+                        artist = str(audio_file['TPE1'])
+                    elif 'ARTIST' in audio_file:  # OGG
+                        artist = str(audio_file['ARTIST'][0])
+                    
+            except Exception:
                 # If metadata extraction fails, use filename
                 self.duration = 0
         else:
@@ -395,8 +414,8 @@ class MusicPlayer:
                 total_time = self.format_time(self.duration)
                 self.time_label.config(text=f"{current_time} / {total_time}")
                 
-                # Check if song ended
-                if not pygame.mixer.music.get_busy() and self.is_playing:
+                # Check if song ended (only if audio is available)
+                if self.audio_available and not pygame.mixer.music.get_busy() and self.is_playing:
                     self.root.after(100, self.next_song)
                     break
             
@@ -432,7 +451,8 @@ class MusicPlayer:
                 # Update volume
                 self.volume = saved_volume
                 self.volume_var.set(saved_volume * 100)
-                pygame.mixer.music.set_volume(self.volume)
+                if self.audio_available:
+                    pygame.mixer.music.set_volume(self.volume)
                 
                 # Populate listbox
                 for song in self.playlist:
@@ -449,8 +469,9 @@ class MusicPlayer:
     def on_closing(self):
         # Stop any playing music and cleanup
         self.stop_position_thread = True
-        pygame.mixer.music.stop()
-        pygame.mixer.quit()
+        if self.audio_available:
+            pygame.mixer.music.stop()
+            pygame.mixer.quit()
         self.save_playlist_to_file()
         self.root.destroy()
 

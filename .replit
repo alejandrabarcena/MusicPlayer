@@ -16,27 +16,15 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Music Player"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "desktop_music_player"
+args = "Music Player VNC"
 
 [[workflows.workflow]]
-name = "Music Player"
+name = "Music Player VNC"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "pip install pygame mutagen && python music_player.py"
+args = "python music_player.py"
 
 [workflows.workflow.metadata]
 outputType = "vnc"
-
-[[workflows.workflow]]
-name = "desktop_music_player"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "pip install pygame mutagen && python music_player.py"

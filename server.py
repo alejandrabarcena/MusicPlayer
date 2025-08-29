@@ -91,7 +91,7 @@ def upload_file():
     uploaded_count = 0
     
     for file in files:
-        if file.filename == '':
+        if file.filename == '' or file.filename is None:
             continue
             
         if file and allowed_file(file.filename):
@@ -104,7 +104,7 @@ def upload_file():
                 flash(f'El archivo {file.filename} es muy grande (máximo 50MB)', 'error')
                 continue
             
-            filename = secure_filename(file.filename)
+            filename = secure_filename(file.filename or '')
             # Add timestamp if file already exists
             if os.path.exists(os.path.join(UPLOAD_FOLDER, filename)):
                 name, ext = os.path.splitext(filename)
@@ -213,12 +213,12 @@ def upload_cover():
     
     file = request.files['cover']
     
-    if file.filename == '':
+    if file.filename == '' or file.filename is None:
         flash('No se seleccionó ninguna imagen', 'error')
         return redirect(url_for('index'))
     
     if file and allowed_image_file(file.filename):
-        filename = secure_filename(file.filename)
+        filename = secure_filename(file.filename or '')
         file_path = os.path.join(COVERS_FOLDER, filename)
         
         try:

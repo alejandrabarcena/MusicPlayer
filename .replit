@@ -19,10 +19,6 @@ author = "agent"
 task = "workflow.run"
 args = "Web Server"
 
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Reproductor Desktop"
-
 [[workflows.workflow]]
 name = "Web Server"
 author = "agent"
@@ -34,17 +30,6 @@ waitForPort = 5000
 
 [workflows.workflow.metadata]
 outputType = "webview"
-
-[[workflows.workflow]]
-name = "Reproductor Desktop"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python main.py desktop"
-
-[workflows.workflow.metadata]
-outputType = "vnc"
 
 [deployment]
 deploymentTarget = "cloudrun"

@@ -22,9 +22,10 @@ from music_player import MusicPlayer
 
 class DesktopWidget:
     """Base class for desktop widgets"""
-    def __init__(self, parent, title="Widget", bg_color="#f8f9fa"):
+    def __init__(self, parent, title="Widget", bg_color="#ffffff"):
         self.parent = parent
-        self.frame = tk.Frame(parent, bg=bg_color, relief=tk.RAISED, bd=2)
+        self.frame = tk.Frame(parent, bg=bg_color, relief=tk.FLAT, bd=0, highlightthickness=2, 
+                             highlightbackground="#ff6b35", highlightcolor="#ff6b35")
         self.title = title
         self.bg_color = bg_color
         
@@ -37,21 +38,25 @@ class DesktopWidget:
 class ClockWidget(DesktopWidget):
     """Digital clock and date widget"""
     def __init__(self, parent):
-        super().__init__(parent, "Clock", "#ff6b35")
+        super().__init__(parent, "Clock", "#ffffff")
         self.setup_ui()
         self.update_time()
         
     def setup_ui(self):
+        # Add padding frame
+        padding_frame = tk.Frame(self.frame, bg=self.bg_color)
+        padding_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=15)
+        
         # Time display
-        self.time_label = tk.Label(self.frame, text="09:00 AM", 
-                                  font=('Arial', 36, 'bold'), 
-                                  fg='white', bg=self.bg_color)
-        self.time_label.pack(pady=10)
+        self.time_label = tk.Label(padding_frame, text="09:00 AM", 
+                                  font=('Arial', 42, 'bold'), 
+                                  fg='#ff6b35', bg=self.bg_color)
+        self.time_label.pack(pady=(0, 5))
         
         # Date display
-        self.date_label = tk.Label(self.frame, text="Monday, 11 August 2025", 
-                                  font=('Arial', 14), 
-                                  fg='white', bg=self.bg_color)
+        self.date_label = tk.Label(padding_frame, text="Friday, 29 August 2025", 
+                                  font=('Arial', 16), 
+                                  fg='#333333', bg=self.bg_color)
         self.date_label.pack()
         
     def update_time(self):
@@ -69,7 +74,7 @@ class ClockWidget(DesktopWidget):
 class CalendarWidget(DesktopWidget):
     """Calendar widget showing current month"""
     def __init__(self, parent):
-        super().__init__(parent, "Calendar", "#f8f9fa")
+        super().__init__(parent, "Calendar", "#ffffff")
         self.setup_ui()
         
     def setup_ui(self):
@@ -113,59 +118,87 @@ class CalendarWidget(DesktopWidget):
                 label.grid(row=week_num, column=day_num, padx=1, pady=1)
 
 class MusicPlayerWidget(DesktopWidget):
-    """Compact music player widget"""
+    """Modern music player widget with album art"""
     def __init__(self, parent):
-        super().__init__(parent, "Music Player", "#2c3e50")
+        super().__init__(parent, "Music Player", "#ffffff")
         self.current_song = "No song playing"
         self.is_playing = False
         self.setup_ui()
         
     def setup_ui(self):
-        # Header
-        header = tk.Label(self.frame, text="MUSIC PLAYLIST", 
-                         font=('Arial', 12, 'bold'), 
-                         fg='white', bg=self.bg_color)
-        header.pack(pady=5)
+        # Main container with padding
+        main_container = tk.Frame(self.frame, bg=self.bg_color)
+        main_container.pack(fill=tk.BOTH, expand=True, padx=20, pady=15)
         
-        # Album art placeholder
-        art_frame = tk.Frame(self.frame, bg='#34495e', width=60, height=60)
+        # Header
+        header = tk.Label(main_container, text="MUSIC PLAYLIST", 
+                         font=('Arial', 14, 'bold'), 
+                         fg='#333333', bg=self.bg_color)
+        header.pack(pady=(0, 15))
+        
+        # Content container
+        content_frame = tk.Frame(main_container, bg=self.bg_color)
+        content_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # Album art - larger and more prominent
+        art_frame = tk.Frame(content_frame, bg='#333333', width=120, height=120, relief=tk.FLAT)
         art_frame.pack_propagate(False)
-        art_frame.pack(side=tk.LEFT, padx=10, pady=5)
+        art_frame.pack(side=tk.LEFT, padx=(0, 20))
+        
+        # Add album art placeholder with figure
+        art_label = tk.Label(art_frame, text="♪\n♫\n♪", font=('Arial', 20), 
+                           fg='white', bg='#333333')
+        art_label.pack(expand=True)
         
         # Song info and controls
-        info_frame = tk.Frame(self.frame, bg=self.bg_color)
-        info_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=10)
+        info_frame = tk.Frame(content_frame, bg=self.bg_color)
+        info_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
-        # Song title
-        self.song_label = tk.Label(info_frame, text="HANNAH+MORALES • I MISS YOU SO MUCH", 
-                                  font=('Arial', 10, 'bold'), 
-                                  fg='white', bg=self.bg_color)
-        self.song_label.pack(anchor='w')
+        # Song title - larger and more prominent
+        self.song_label = tk.Label(info_frame, text="HANNAH MORALES - I MISS YOU\nSO MUCH", 
+                                  font=('Arial', 14, 'bold'), 
+                                  fg='#333333', bg=self.bg_color, justify=tk.LEFT)
+        self.song_label.pack(anchor='w', pady=(0, 15))
         
-        # Progress bar
+        # Progress bar with custom styling
         progress_frame = tk.Frame(info_frame, bg=self.bg_color)
-        progress_frame.pack(fill='x', pady=2)
+        progress_frame.pack(fill='x', pady=(0, 15))
         
-        self.progress_bar = ttk.Scale(progress_frame, from_=0, to=100, 
-                                     orient=tk.HORIZONTAL)
-        self.progress_bar.pack(fill='x')
+        # Progress track
+        track_frame = tk.Frame(progress_frame, bg='#e0e0e0', height=6)
+        track_frame.pack(fill='x')
         
-        # Control buttons
+        # Progress indicator
+        progress_indicator = tk.Frame(track_frame, bg='#333333', height=6)
+        progress_indicator.pack(side=tk.LEFT, fill='y')
+        progress_indicator.configure(width=150)  # Simulated progress
+        
+        # Control buttons - larger and modern
         controls = tk.Frame(info_frame, bg=self.bg_color)
         controls.pack(anchor='w')
         
-        button_style = {'font': ('Arial', 12), 'bg': '#3498db', 'fg': 'white', 
-                       'relief': tk.FLAT, 'width': 3}
+        button_style = {'font': ('Arial', 16), 'bg': '#333333', 'fg': 'white', 
+                       'relief': tk.FLAT, 'width': 3, 'height': 2, 'bd': 0}
         
-        tk.Button(controls, text="⏮", command=self.prev_song, **button_style).pack(side=tk.LEFT, padx=2)
-        self.play_btn = tk.Button(controls, text="▶", command=self.toggle_play, **button_style)
-        self.play_btn.pack(side=tk.LEFT, padx=2)
-        tk.Button(controls, text="⏭", command=self.next_song, **button_style).pack(side=tk.LEFT, padx=2)
-        tk.Button(controls, text="🎵", command=self.open_full_player, **button_style).pack(side=tk.LEFT, padx=2)
+        tk.Button(controls, text="⇄", command=self.shuffle, **button_style).pack(side=tk.LEFT, padx=(0, 10))
+        tk.Button(controls, text="⏮", command=self.prev_song, **button_style).pack(side=tk.LEFT, padx=5)
+        
+        # Play button - larger and centered
+        play_style = button_style.copy()
+        play_style.update({'width': 4, 'height': 2, 'font': ('Arial', 20)})
+        self.play_btn = tk.Button(controls, text="▶", command=self.toggle_play, **play_style)
+        self.play_btn.pack(side=tk.LEFT, padx=5)
+        
+        tk.Button(controls, text="⏭", command=self.next_song, **button_style).pack(side=tk.LEFT, padx=5)
+        tk.Button(controls, text="⇄", command=self.repeat, **button_style).pack(side=tk.LEFT, padx=(10, 0))
         
     def toggle_play(self):
         self.is_playing = not self.is_playing
         self.play_btn.config(text="⏸" if self.is_playing else "▶")
+        
+    def shuffle(self):
+        # Implement shuffle logic
+        pass
         
     def prev_song(self):
         # Implement previous song logic
@@ -173,6 +206,10 @@ class MusicPlayerWidget(DesktopWidget):
         
     def next_song(self):
         # Implement next song logic
+        pass
+        
+    def repeat(self):
+        # Implement repeat logic
         pass
         
     def open_full_player(self):
@@ -186,7 +223,7 @@ class MusicPlayerWidget(DesktopWidget):
 class NotesWidget(DesktopWidget):
     """Simple notes widget"""
     def __init__(self, parent):
-        super().__init__(parent, "Notes", "#f8f9fa")
+        super().__init__(parent, "Notes", "#ffffff")
         self.notes_file = "desktop_notes.txt"
         self.setup_ui()
         self.load_notes()
@@ -195,14 +232,18 @@ class NotesWidget(DesktopWidget):
         # Header
         header = tk.Label(self.frame, text="NOTE", 
                          font=('Arial', 14, 'bold'), 
-                         fg='#333', bg=self.bg_color)
-        header.pack(pady=5)
+                         fg='#333333', bg=self.bg_color)
+        header.pack(pady=(15, 20))
         
-        # Text area
-        self.text_area = tk.Text(self.frame, width=30, height=8, 
-                                font=('Arial', 10), bg='white', fg='#333',
-                                relief=tk.FLAT, bd=5)
-        self.text_area.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
+        # Text area with modern styling
+        text_frame = tk.Frame(self.frame, bg=self.bg_color)
+        text_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=(0, 15))
+        
+        self.text_area = tk.Text(text_frame, width=35, height=12, 
+                                font=('Arial', 11), bg='#f9f9f9', fg='#333333',
+                                relief=tk.FLAT, bd=0, wrap=tk.WORD,
+                                highlightthickness=1, highlightcolor='#ff6b35')
+        self.text_area.pack(fill=tk.BOTH, expand=True)
         
         # Auto-save when text changes
         self.text_area.bind('<KeyRelease>', self.save_notes)
@@ -227,46 +268,48 @@ class NotesWidget(DesktopWidget):
             print(f"Error saving notes: {e}")
 
 class AppLauncherWidget(DesktopWidget):
-    """Application launcher with app icons"""
+    """Modern application launcher with rounded icons"""
     def __init__(self, parent):
-        super().__init__(parent, "Apps", "#f8f9fa")
+        super().__init__(parent, "Apps", "#ffffff")
         self.setup_ui()
         
     def setup_ui(self):
         # Title
         title = tk.Label(self.frame, text="APPS", 
-                        font=('Arial', 12, 'bold'), 
-                        fg='#333', bg=self.bg_color)
-        title.pack(pady=5)
+                        font=('Arial', 14, 'bold'), 
+                        fg='#333333', bg=self.bg_color)
+        title.pack(pady=(15, 20))
         
-        # App grid
+        # App grid with padding
         apps_frame = tk.Frame(self.frame, bg=self.bg_color)
-        apps_frame.pack(padx=10, pady=5)
+        apps_frame.pack(padx=20, pady=(0, 15))
         
-        # Define apps
+        # Define apps with modern styling
         apps = [
-            ("Music Player", self.open_music_player, "#2c3e50"),
-            ("Upload Music", self.open_upload_page, "#27ae60"),
-            ("Calculator", self.open_calculator, "#e74c3c"),
-            ("Browser", self.open_browser, "#3498db"),
-            ("Files", self.open_files, "#f39c12"),
-            ("Settings", self.open_settings, "#9b59b6")
+            ("Music Player", self.open_music_player),
+            ("Upload Music", self.open_upload_page),
+            ("Calculator", self.open_calculator),
+            ("Browser", self.open_browser),
+            ("Files", self.open_files),
+            ("Settings", self.open_settings)
         ]
         
-        # Create app buttons in 3x2 grid
-        for i, (name, command, color) in enumerate(apps):
+        # Create app buttons in 3x2 grid with modern design
+        for i, (name, command) in enumerate(apps):
             row = i // 3
             col = i % 3
             
-            btn = tk.Button(apps_frame, text="+", font=('Arial', 16, 'bold'),
-                           bg=color, fg='white', relief=tk.FLAT,
-                           width=4, height=2, command=command)
-            btn.grid(row=row, column=col, padx=3, pady=3)
+            # Modern rounded button
+            btn = tk.Button(apps_frame, text="+", font=('Arial', 20, 'bold'),
+                           bg='#333333', fg='#ff6b35', relief=tk.FLAT,
+                           width=5, height=3, command=command, bd=0,
+                           highlightthickness=2, highlightbackground='#ff6b35')
+            btn.grid(row=row*2, column=col, padx=8, pady=8)
             
-            # App label
-            label = tk.Label(apps_frame, text="APPS", font=('Arial', 8),
-                           fg='#666', bg=self.bg_color)
-            label.grid(row=row+2, column=col, pady=(0, 5))
+            # App label below each icon
+            label = tk.Label(apps_frame, text="APPS", font=('Arial', 10),
+                           fg='#666666', bg=self.bg_color)
+            label.grid(row=row*2+1, column=col, pady=(5, 0))
             
     def open_music_player(self):
         try:
@@ -309,29 +352,29 @@ class AppLauncherWidget(DesktopWidget):
         messagebox.showinfo("Settings", "Settings panel coming soon!")
 
 class FilesWidget(DesktopWidget):
-    """Files and folders widget"""
+    """Modern files and folders widget"""
     def __init__(self, parent):
-        super().__init__(parent, "Files", "#f8f9fa")
+        super().__init__(parent, "Files", "#ffffff")
         self.setup_ui()
         
     def setup_ui(self):
         # Header
         header = tk.Label(self.frame, text="FILES", 
-                         font=('Arial', 12, 'bold'), 
-                         fg='#333', bg=self.bg_color)
-        header.pack(pady=5)
+                         font=('Arial', 14, 'bold'), 
+                         fg='#333333', bg=self.bg_color)
+        header.pack(pady=(15, 20))
         
-        # Files grid
+        # Files grid with modern styling
         files_frame = tk.Frame(self.frame, bg=self.bg_color)
-        files_frame.pack(padx=10, pady=5)
+        files_frame.pack(padx=20, pady=(0, 15))
         
-        # Folder icons
+        # Modern folder icons
         for i in range(4):
-            folder_btn = tk.Button(files_frame, text="📁", font=('Arial', 24),
-                                 bg='#f39c12', fg='white', relief=tk.FLAT,
-                                 width=4, height=2, 
+            folder_btn = tk.Button(files_frame, text="📁", font=('Arial', 32),
+                                 bg='#ff6b35', fg='white', relief=tk.FLAT,
+                                 width=4, height=2, bd=0,
                                  command=lambda: self.open_folder())
-            folder_btn.grid(row=0, column=i, padx=3, pady=3)
+            folder_btn.grid(row=0, column=i, padx=8, pady=5)
             
     def open_folder(self):
         folder = filedialog.askdirectory()
@@ -362,74 +405,109 @@ class MotivationalWidget(DesktopWidget):
                               fg='white', bg='#2c3e50')
         quote_label.pack(expand=True)
 
+class BrowserBar(tk.Frame):
+    """Modern browser-style navigation bar"""
+    def __init__(self, parent):
+        super().__init__(parent, bg='#f5f5f5', height=50)
+        self.pack_propagate(False)
+        self.setup_ui()
+        
+    def setup_ui(self):
+        # Navigation buttons
+        nav_frame = tk.Frame(self, bg='#f5f5f5')
+        nav_frame.pack(side=tk.LEFT, padx=15, pady=10)
+        
+        button_style = {'font': ('Arial', 12), 'bg': '#e0e0e0', 'fg': '#666', 
+                       'relief': tk.FLAT, 'width': 3, 'bd': 0}
+        
+        tk.Button(nav_frame, text="←", **button_style).pack(side=tk.LEFT, padx=2)
+        tk.Button(nav_frame, text="→", **button_style).pack(side=tk.LEFT, padx=2)
+        
+        # Address bar
+        address_frame = tk.Frame(self, bg='#f5f5f5')
+        address_frame.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=10, pady=10)
+        
+        self.address_entry = tk.Entry(address_frame, font=('Arial', 12), bg='white', 
+                                     relief=tk.FLAT, bd=5)
+        self.address_entry.pack(fill=tk.X)
+        self.address_entry.insert(0, "🔒 localhost:desktop")
+        
+        # Right side buttons
+        right_frame = tk.Frame(self, bg='#f5f5f5')
+        right_frame.pack(side=tk.RIGHT, padx=15, pady=10)
+        
+        tk.Button(right_frame, text="🏠", **button_style).pack(side=tk.LEFT, padx=2)
+        tk.Button(right_frame, text="+", **button_style).pack(side=tk.LEFT, padx=2)
+        tk.Button(right_frame, text="👤", **button_style).pack(side=tk.LEFT, padx=2)
+
 class CustomDesktop:
-    """Main desktop application"""
+    """Main desktop application with modern design"""
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("Sou Jin AE Desktop")
+        self.root.title("Welcome Classical Music Desktop")
         self.root.geometry("1400x900")
-        self.root.configure(bg='#e8e9ea')
+        self.root.configure(bg='#f7f4f1')  # Cream background
         
-        # Create main container
-        self.main_frame = tk.Frame(self.root, bg='#e8e9ea')
-        self.main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        # Create browser bar
+        self.browser_bar = BrowserBar(self.root)
+        self.browser_bar.pack(fill=tk.X)
+        
+        # Create main container with cream background
+        self.main_frame = tk.Frame(self.root, bg='#f7f4f1')
+        self.main_frame.pack(fill=tk.BOTH, expand=True, padx=30, pady=30)
         
         self.setup_layout()
         
     def setup_layout(self):
-        # Welcome title
-        title_frame = tk.Frame(self.main_frame, bg='#e8e9ea')
-        title_frame.pack(fill='x', pady=(0, 20))
+        # Welcome title with modern typography
+        title_frame = tk.Frame(self.main_frame, bg='#f7f4f1')
+        title_frame.pack(fill='x', pady=(0, 30))
         
         welcome_label = tk.Label(title_frame, text="Welcome", 
-                                font=('Arial', 36, 'bold'), 
-                                fg='#ff6b35', bg='#e8e9ea')
+                                font=('Arial', 48, 'normal'), 
+                                fg='#ff6b35', bg='#f7f4f1')
         welcome_label.pack(side=tk.LEFT)
         
-        subtitle_label = tk.Label(title_frame, text="SOU JIN AE\nDESKTOP", 
-                                 font=('Arial', 28, 'bold'), 
-                                 fg='#333', bg='#e8e9ea')
-        subtitle_label.pack(side=tk.LEFT, padx=(10, 0))
+        subtitle_label = tk.Label(title_frame, text="CLASSICAL\nMUSIC", 
+                                 font=('Arial', 36, 'bold'), 
+                                 fg='#333333', bg='#f7f4f1')
+        subtitle_label.pack(side=tk.LEFT, padx=(15, 0))
         
-        # Main content area
-        content_frame = tk.Frame(self.main_frame, bg='#e8e9ea')
+        # Main content area with proper spacing
+        content_frame = tk.Frame(self.main_frame, bg='#f7f4f1')
         content_frame.pack(fill=tk.BOTH, expand=True)
         
-        # Left column
-        left_column = tk.Frame(content_frame, bg='#e8e9ea')
-        left_column.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
+        # Left column - Calendar and Music Player
+        left_column = tk.Frame(content_frame, bg='#f7f4f1')
+        left_column.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 20))
         
-        # Calendar widget
+        # Calendar widget (top left)
         self.calendar_widget = CalendarWidget(left_column)
-        self.calendar_widget.pack(fill='x', pady=(0, 20))
+        self.calendar_widget.pack(pady=(0, 20))
         
-        # Motivational widget
-        self.motivational_widget = MotivationalWidget(left_column)
-        self.motivational_widget.pack(fill='x', pady=(0, 20))
+        # Music player widget (large, center left)
+        self.music_widget = MusicPlayerWidget(left_column)
+        self.music_widget.pack(pady=(0, 20))
         
-        # Notes widget
+        # Notes widget (bottom left)
         self.notes_widget = NotesWidget(left_column)
         self.notes_widget.pack(fill=tk.BOTH, expand=True)
         
-        # Right column
-        right_column = tk.Frame(content_frame, bg='#e8e9ea')
-        right_column.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+        # Right column - Clock, Apps, Files
+        right_column = tk.Frame(content_frame, bg='#f7f4f1')
+        right_column.pack(side=tk.RIGHT, fill=tk.Y)
         
-        # Clock widget
+        # Clock widget (top right)
         self.clock_widget = ClockWidget(right_column)
-        self.clock_widget.pack(fill='x', pady=(0, 20))
+        self.clock_widget.pack(pady=(0, 20))
         
-        # Music player widget
-        self.music_widget = MusicPlayerWidget(right_column)
-        self.music_widget.pack(fill='x', pady=(0, 20))
-        
-        # App launcher widget
+        # App launcher widget (center right)
         self.app_launcher_widget = AppLauncherWidget(right_column)
-        self.app_launcher_widget.pack(fill='x', pady=(0, 20))
+        self.app_launcher_widget.pack(pady=(0, 20))
         
-        # Files widget
+        # Files widget (bottom right)
         self.files_widget = FilesWidget(right_column)
-        self.files_widget.pack(fill='x')
+        self.files_widget.pack()
         
     def run(self):
         self.root.mainloop()

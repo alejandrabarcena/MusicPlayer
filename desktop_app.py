@@ -459,19 +459,29 @@ class CustomDesktop:
         self.setup_layout()
         
     def setup_layout(self):
-        # Welcome title with modern typography
-        title_frame = tk.Frame(self.main_frame, bg='#f7f4f1')
-        title_frame.pack(fill='x', pady=(0, 30))
+        # Logo section with custom typography to match the provided image
+        logo_frame = tk.Frame(self.main_frame, bg='#f7f4f1')
+        logo_frame.pack(fill='x', pady=(0, 30))
         
-        welcome_label = tk.Label(title_frame, text="Welcome", 
-                                font=('Arial', 48, 'normal'), 
+        # "Welcome" in elegant cursive orange
+        welcome_label = tk.Label(logo_frame, text="Welcome", 
+                                font=('Brush Script MT', 52, 'italic'), 
                                 fg='#ff6b35', bg='#f7f4f1')
         welcome_label.pack(side=tk.LEFT)
         
-        subtitle_label = tk.Label(title_frame, text="CLASSICAL\nMUSIC", 
-                                 font=('Arial', 36, 'bold'), 
-                                 fg='#333333', bg='#f7f4f1')
-        subtitle_label.pack(side=tk.LEFT, padx=(15, 0))
+        # "CLASSICAL MUSIC" in bold dark gray, positioned below/right
+        classical_frame = tk.Frame(logo_frame, bg='#f7f4f1')
+        classical_frame.pack(side=tk.LEFT, padx=(10, 0))
+        
+        classical_label = tk.Label(classical_frame, text="CLASSICAL", 
+                                 font=('Arial', 38, 'bold'), 
+                                 fg='#4a4a4a', bg='#f7f4f1')
+        classical_label.pack(anchor='w')
+        
+        music_label = tk.Label(classical_frame, text="MUSIC", 
+                             font=('Arial', 38, 'bold'), 
+                             fg='#4a4a4a', bg='#f7f4f1')
+        music_label.pack(anchor='w')
         
         # Main content area with proper spacing
         content_frame = tk.Frame(self.main_frame, bg='#f7f4f1')

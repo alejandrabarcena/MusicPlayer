@@ -4,7 +4,7 @@ expertMode = true
 
 [nix]
 channel = "stable-25_05"
-packages = ["SDL2", "SDL2_image", "SDL2_mixer", "SDL2_ttf", "fontconfig", "freetype", "libjpeg", "libpng", "pkg-config", "portmidi"]
+packages = ["SDL2", "SDL2_image", "SDL2_mixer", "SDL2_ttf", "fontconfig", "freetype", "libjpeg", "libpng", "pkg-config", "portmidi", "alsa-lib", "pulseaudio"]
 
 [workflows]
 runButton = "Project"
@@ -22,12 +22,12 @@ args = "Music Player VNC"
 name = "Music Player VNC"
 author = "agent"
 
+[workflows.workflow.metadata]
+outputType = "vnc"
+
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python music_player.py"
-
-[workflows.workflow.metadata]
-outputType = "vnc"
 
 [deployment]
 deploymentTarget = "cloudrun"

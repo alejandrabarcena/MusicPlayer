@@ -28,3 +28,6 @@ args = "python music_player.py"
 
 [workflows.workflow.metadata]
 outputType = "vnc"
+
+[deployment]
+deploymentTarget = "cloudrun"
